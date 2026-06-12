@@ -16,8 +16,8 @@ This checklist tracks your project's readiness based on the **official lablab.ai
 ### ✅ Dependencies Installation
 *   [x] **Band SDK Installation:** Installed `band-sdk[langgraph]` and `langchain-openai` in the virtual environment.
 
-### ⚠️ Missing Technical Credentials
-*   [ ] **Band Agent IDs & API Keys:** Need to register 3 External Agents on [app.band.ai/agents](https://app.band.ai/agents) and populate `agent_config.yaml`.
+### ✅ Technical Credentials
+*   [x] **Band Agent IDs & API Keys:** Registered 3 External Agents (`@planner-agent`, `@executor-agent`, `@reviewer-agent`) and populated `agent_config.yaml`.
 
 ---
 
@@ -34,8 +34,7 @@ This checklist tracks your project's readiness based on the **official lablab.ai
 
 These are the official deliverables listed on the lablab.ai submission page:
 
-*   [ ] **Public GitHub Repository:** We have initialized Git locally, but you must create a public repository on GitHub (e.g., `github.com/your-username/your-repo`) and link it:
-    *   *Command to link:* `git remote add origin <your-github-repo-url>`
+*   [x] **Public GitHub Repository:** Created and linked at [DeathKnell837/band-of-agents-hackathon](https://github.com/DeathKnell837/band-of-agents-hackathon).
 *   [ ] **Project Title:** Pick an impact-driven title.
 *   [ ] **Short & Long Descriptions:** Need to draft these explaining what your system does and why it's valuable.
 *   [ ] **Video Presentation (2-5 minutes):** Walkthrough and screen recording demonstrating the agents collaborating in real-time in the Band chat room.
@@ -45,8 +44,5 @@ These are the official deliverables listed on the lablab.ai submission page:
 ---
 
 ## 🎯 4. Next Actions (What to do right now)
-1. **Create the 3 External Agents on Band.ai:**
-   * Go to [app.band.ai/agents](https://app.band.ai/agents).
-   * Create 3 agents (e.g. `@Planner`, `@Executor`, `@Reviewer`).
-   * Send me their UUIDs and API Keys so I can create your local `agent_config.yaml` file.
-2. **Create a Public GitHub Repository** on your GitHub account so we can link it and push our codebase.
+1. **Establish the multi-agent collaboration logic** (write the Python code for our 3 agents to coordinate in the room).
+2. **Commit our updated configuration files** to the GitHub repository.

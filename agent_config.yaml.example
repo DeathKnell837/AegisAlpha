@@ -3,14 +3,17 @@
 # Get these from app.band.ai -> Agents -> New Agent (External Agent).
 
 # Repeat this block for each of the 3 required agents.
-agent_one:
-  agent_id: "your-first-agent-uuid"
-  api_key: "your-first-agent-api-key"
+planner_agent:
+  agent_id: "your-planner-agent-uuid"
+  api_key: "your-planner-agent-api-key"
+  handle: "@your-username/planner-agent"
 
-agent_two:
-  agent_id: "your-second-agent-uuid"
-  api_key: "your-second-agent-api-key"
+executor_agent:
+  agent_id: "your-executor-agent-uuid"
+  api_key: "your-executor-agent-api-key"
+  handle: "@your-username/executor-agent"
 
-agent_three:
-  agent_id: "your-third-agent-uuid"
-  api_key: "your-third-agent-api-key"
+reviewer_agent:
+  agent_id: "your-reviewer-agent-uuid"
+  api_key: "your-reviewer-agent-api-key"
+  handle: "@your-username/reviewer-agent"

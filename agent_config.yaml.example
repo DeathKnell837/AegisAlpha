@@ -1,0 +1,16 @@
+# agent_config.yaml
+# Add your Band Agent credentials here.
+# Get these from app.band.ai -> Agents -> New Agent (External Agent).
+
+# Repeat this block for each of the 3 required agents.
+agent_one:
+  agent_id: "your-first-agent-uuid"
+  api_key: "your-first-agent-api-key"
+
+agent_two:
+  agent_id: "your-second-agent-uuid"
+  api_key: "your-second-agent-api-key"
+
+agent_three:
+  agent_id: "your-third-agent-uuid"
+  api_key: "your-third-agent-api-key"

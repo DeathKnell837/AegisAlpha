@@ -29,11 +29,11 @@ graph TD
     Server -->|Uploads Contract / Mentions Planner| BandRoom[Band Chat Room]
     
     subgraph Agents Network
-        BandRoom -->|@PlannerAgent| Planner[Planner Agent]
+        BandRoom -->|"@PlannerAgent"| Planner[Planner Agent]
         Planner -->|Creates 18-point Audit Plan| BandRoom
-        BandRoom -->|@ExecutorAgent| Executor[Executor Agent]
+        BandRoom -->|"@ExecutorAgent"| Executor[Executor Agent]
         Executor -->|Performs Clause Audit & Confidence Scores| BandRoom
-        BandRoom -->|@ReviewerAgent| Reviewer[Reviewer Agent]
+        BandRoom -->|"@ReviewerAgent"| Reviewer[Reviewer Agent]
         Reviewer -->|Adversarial Verdict, Exposure & Challenges| BandRoom
     end
 

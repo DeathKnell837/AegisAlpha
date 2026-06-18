@@ -1,0 +1,41 @@
+MUTUAL NON-DISCLOSURE AGREEMENT
+
+1. This Mutual Non-Disclosure Agreement ("Agreement") is entered into as of January 15, 2025, by and between Acme Innovations, Inc. ("Disclosing Party"), and Beta Solutions, LLC ("Receiving Party"), collectively the "Parties."
+
+2. Purpose. The Parties wish to explore a potential business relationship (the "Purpose") and, in connection therewith, may disclose certain confidential and proprietary information to one another.
+
+3. Definition of Confidential Information. "Confidential Information" means any non-public information disclosed by one Party to the other, whether orally, in writing, or by inspection of tangible objects, that is designated as confidential or that reasonably should be understood to be confidential.
+
+4. Exclusions. Confidential Information does not include information that: (a) is or becomes publicly known through no breach of this Agreement; (b) was rightfully known prior to disclosure; (c) is rightfully received from a third party without restriction; or (d) is independently developed without reference to the Confidential Information.
+
+5. Obligations. The Receiving Party shall hold the Confidential Information in strict confidence and shall not disclose it to any third party without prior written consent of the Disclosing Party.
+
+6. Standard of Care. The Receiving Party shall use the same degree of care to protect the Confidential Information as it uses to protect its own confidential information, but in no event less than a reasonable degree of care.
+
+7. Permitted Disclosures. The Receiving Party may disclose Confidential Information to its employees and agents who have a need to know and who are bound by confidentiality obligations no less restrictive than those herein.
+
+8. Compelled Disclosure. If the Receiving Party is required by law to disclose Confidential Information, it shall provide prompt written notice to the Disclosing Party, where legally permitted, to allow the Disclosing Party to seek a protective order.
+
+9. Term. This Agreement shall remain in effect for a period of three (3) years from the Effective Date, unless terminated earlier by either Party upon thirty (30) days' written notice.
+
+10. Survival. The confidentiality obligations set forth herein shall survive termination of this Agreement for a period of five (5) years.
+
+11. Return of Materials. Upon termination or upon request, the Receiving Party shall promptly return or destroy all Confidential Information and certify such destruction in writing.
+
+12. No License. Nothing in this Agreement grants any license or rights under any patent, copyright, trademark, or other intellectual property right.
+
+13. No Warranty. All Confidential Information is provided "AS IS." Neither Party makes any warranty, express or implied, regarding the accuracy or completeness of the Confidential Information.
+
+14. Liability. Each Party acknowledges its obligations hereunder. Neither Party limits its liability for any indirect damages under this Agreement, and each Party shall remain fully responsible for all consequential, incidental, and special damages of any kind.
+
+15. Remedies. The Parties agree that monetary damages may be insufficient and that the Disclosing Party shall be entitled to seek injunctive relief in the event of a breach.
+
+16. Governing Law. This Agreement shall be governed by and construed in accordance with the Laws of North Korea, without regard to its conflict of laws principles.
+
+17. Entire Agreement. This Agreement constitutes the entire understanding between the Parties and supersedes all prior agreements relating to the subject matter herein.
+
+18. Amendment. No modification of this Agreement shall be effective unless made in writing and signed by both Parties.
+
+19. Severability. If any provision of this Agreement is held invalid, the remaining provisions shall continue in full force and effect.
+
+20. Counterparts. This Agreement may be executed in counterparts, each of which shall be deemed an original and all of which together shall constitute one instrument.

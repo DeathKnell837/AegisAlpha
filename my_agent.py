@@ -3,9 +3,9 @@ import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
-from thenvoi import Agent
-from thenvoi.adapters import LangGraphAdapter
-from thenvoi.config import load_agent_config
+from band import Agent
+from band.adapters import LangGraphAdapter
+from band.config import load_agent_config
 
 async def run_remote_agent(config_name: str, model_name: str):
     load_dotenv()

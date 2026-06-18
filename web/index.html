@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LexAudit — Legal Contract Compliance Auditor</title>
+  <meta name="description" content="AI-powered multi-agent legal contract compliance auditor. Instantly audit NDAs, MSAs, and more against GDPR, HIPAA, SOC 2, and other frameworks.">
+  <link rel="stylesheet" href="index.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="lexaudit">
+
+  <!-- TOP BAR -->
+  <header id="topbar">
+    <div class="brand"><i data-lucide="scale"></i> <span>LexAudit</span></div>
+    <div id="contract-meta">
+      <span id="contract-name">—</span>
+      <span id="contract-type" class="pill">—</span>
+    </div>
+    <div id="audit-progress"><div id="document-progress-bar" style="width: 0%"></div></div>
+    <div class="topbar-actions">
+      <div id="agent-status-indicator" class="agent-status agent-status--checking">
+        <span class="agent-status-dot"></span>
+        <span class="agent-status-label">Checking...</span>
+      </div>
+      <button id="btn-export-report" class="topbar-btn" title="Export audit report" disabled><i data-lucide="download"></i> Export</button>
+      <button id="btn-new-audit" class="topbar-btn topbar-btn--primary" title="Start a new audit"><i data-lucide="refresh-cw"></i> New Audit</button>
+      <button id="btn-settings" class="topbar-btn" title="Settings"><i data-lucide="settings"></i> Settings</button>
+      <div id="overall-status" class="pill status-pending">PENDING SCAN</div>
+    </div>
+  </header>
+
+  <main id="grid">
+    <!-- COLUMN 1: AGENT ORCHESTRA -->
+    <aside id="col-agents">
+      <h2 class="col-title">AGENT ORCHESTRA</h2>
+      <div id="agent-flow">
+        <div class="agent-node" id="agent-planner" data-agent="planner" data-state="idle">
+          <span class="node-ring"></span>
+          <div class="node-avatar">P</div>
+          <div class="node-info">
+            <span class="node-name">Planner</span>
+            <span class="node-state-label">Idle</span>
+            <span class="node-model">Qwen-2.5-32B</span>
+          </div>
+        </div>
+        
+        <div class="connector-container">
+          <div class="connector-line"></div>
+          <div id="connector-packet" class="packet"></div>
+        </div>
+
+        <div class="agent-node" id="agent-executor" data-agent="executor" data-state="idle">
+          <span class="node-ring"></span>
+          <div class="node-avatar">E</div>
+          <div class="node-info">
+            <span class="node-name">Executor</span>
+            <span class="node-state-label">Idle</span>
+            <span class="node-model">Qwen-2.5-32B</span>
+          </div>
+        </div>
+
+        <div class="connector-container">
+          <div class="connector-line"></div>
+        </div>
+
+        <div class="agent-node" id="agent-reviewer" data-agent="reviewer" data-state="idle">
+          <span class="node-ring"></span>
+          <div class="node-avatar">R</div>
+          <div class="node-info">
+            <span class="node-name">Reviewer</span>
+            <span class="node-state-label">Idle</span>
+            <span class="node-model">Qwen-2.5-32B</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT HISTORY -->
+      <div id="audit-history-section">
+        <div class="history-header">
+          <h2 class="col-title" style="margin: 0;">AUDIT HISTORY</h2>
+          <button id="btn-clear-history" class="history-clear-btn" title="Clear all audit history"><i data-lucide="trash-2"></i> Clear</button>
+        </div>
+        <div id="audit-history-list">
+          <p class="history-empty">No previous audits this session.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- COLUMN 2: CONTRACT WORKSPACE -->
+    <section id="col-workspace">
+
+      <!-- UPLOAD PANEL -->
+      <div id="upload-panel">
+        <!-- Framework selector -->
+        <div id="framework-selector">
+          <span class="framework-label">Frameworks:</span>
+          <div id="framework-chips">
+            <button class="framework-chip active" data-fw="GDPR">GDPR</button>
+            <button class="framework-chip active" data-fw="CCPA">CCPA/CPRA</button>
+            <button class="framework-chip active" data-fw="HIPAA">HIPAA</button>
+            <button class="framework-chip active" data-fw="SOC2">SOC 2</button>
+            <button class="framework-chip active" data-fw="SOX">SOX</button>
+            <button class="framework-chip active" data-fw="AML">AML/KYC</button>
+          </div>
+        </div>
+
+        <div id="upload-zone" class="upload-zone" role="button" tabindex="0" aria-label="Upload contract file">
+          <div id="upload-idle" class="upload-state">
+            <div class="upload-icon"><i data-lucide="file-text"></i></div>
+            <p class="upload-title">Drop your contract here</p>
+            <p class="upload-sub">Supports PDF and DOCX · Max recommended 15,000 characters</p>
+            <label class="upload-btn" for="file-input">Choose File</label>
+            <input type="file" id="file-input" accept=".pdf,.docx" hidden />
+          </div>
+          <div id="upload-loading" class="upload-state" style="display:none">
+            <div class="upload-spinner"></div>
+            <p class="upload-title">Extracting contract text...</p>
+          </div>
+          <div id="upload-ready" class="upload-state" style="display:none">
+            <div class="upload-icon"><i data-lucide="check-circle-2"></i></div>
+            <p class="upload-title" id="upload-filename">contract.pdf</p>
+            <p class="upload-sub" id="upload-charcount">0 characters extracted</p>
+            <div id="upload-size-warning" class="upload-warning" style="display:none">
+              <i data-lucide="alert-triangle"></i> Large file — only first 15,000 characters will be sent to agents
+            </div>
+            <div class="upload-actions">
+              <button class="upload-btn upload-btn--primary" id="btn-start-audit"><i data-lucide="scale"></i> Start Audit</button>
+              <button class="upload-btn upload-btn--ghost" id="btn-clear-upload">Clear</button>
+            </div>
+          </div>
+          <div id="upload-sending" class="upload-state" style="display:none">
+            <div class="upload-spinner upload-spinner--planner"></div>
+            <p class="upload-title">Sending to agents...</p>
+            <p class="upload-sub">Planner agent is waking up</p>
+          </div>
+          <div id="upload-sent" class="upload-state" style="display:none">
+            <div class="upload-icon"><i data-lucide="rocket"></i></div>
+            <p class="upload-title">Audit in progress!</p>
+            <p class="upload-sub">Watch the dashboard update live below</p>
+            <button class="upload-btn upload-btn--ghost" id="btn-audit-another" style="margin-top:8px">Upload Another Contract</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="document-viewer" class="contract-viewer">
+        <h2>Contract Document</h2>
+        <div id="document-lines"></div>
+      </div>
+      <div id="collab-stream" class="message-log">
+        <h2>Collaboration Stream</h2>
+        <div id="message-log"></div>
+      </div>
+    </section>
+
+    <!-- COLUMN 3: RISK & FINDINGS -->
+    <aside id="col-risk">
+      <div id="risk-gauge-container">
+        <h2>Compliance Risk Score</h2>
+        <div id="risk-gauge">
+          <svg viewBox="0 0 120 120" class="gauge-svg">
+            <circle class="gauge-track" cx="60" cy="60" r="52"></circle>
+            <circle id="risk-gauge-fill" class="gauge-fill" cx="60" cy="60" r="52" style="stroke-dasharray: 326.7; stroke-dashoffset: 326.7;"></circle>
+          </svg>
+          <div class="gauge-value"><span id="risk-gauge-label">0</span><small>RISK</small></div>
+        </div>
+        <!-- Severity breakdown bar -->
+        <div id="severity-breakdown">
+          <div class="sev-bar-row"><span class="sev-label">CRITICAL</span><div class="sev-bar-track"><div class="sev-bar sev-bar--crit" id="sev-crit" style="width:0%"></div></div><span class="sev-count" id="sev-crit-count">0</span></div>
+          <div class="sev-bar-row"><span class="sev-label">HIGH</span><div class="sev-bar-track"><div class="sev-bar sev-bar--high" id="sev-high" style="width:0%"></div></div><span class="sev-count" id="sev-high-count">0</span></div>
+          <div class="sev-bar-row"><span class="sev-label">MEDIUM</span><div class="sev-bar-track"><div class="sev-bar sev-bar--med" id="sev-med" style="width:0%"></div></div><span class="sev-count" id="sev-med-count">0</span></div>
+          <div class="sev-bar-row"><span class="sev-label">LOW</span><div class="sev-bar-track"><div class="sev-bar sev-bar--low" id="sev-low" style="width:0%"></div></div><span class="sev-count" id="sev-low-count">0</span></div>
+          <div class="sev-bar-row"><span class="sev-label">PASS</span><div class="sev-bar-track"><div class="sev-bar sev-bar--safe" id="sev-pass" style="width:0%"></div></div><span class="sev-count" id="sev-pass-count">0</span></div>
+        </div>
+        <div id="total-exposure" class="total-exposure" style="display:none"></div>
+      </div>
+
+      <div id="findings-feed">
+        <div class="findings-header">
+          <h2>Audit Findings</h2>
+          <div id="findings-filter">
+            <button class="filter-chip active" data-filter="ALL">All</button>
+            <button class="filter-chip" data-filter="CRITICAL">Critical</button>
+            <button class="filter-chip" data-filter="HIGH">High</button>
+            <button class="filter-chip" data-filter="MEDIUM">Medium</button>
+          </div>
+        </div>
+        <ul id="findings-container" class="findings-list"></ul>
+      </div>
+
+      <div id="checklist">
+        <h2>Compliance Checklist</h2>
+        <ul id="checklist-container"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <!-- STATUS BAR -->
+  <footer id="statusbar">
+    <span id="connection-status" class="dot dot--off"></span>
+    <span id="socket-label">Offline</span>
+    <span class="statusbar-sep">·</span>
+    <span id="statusbar-event-count">0 events</span>
+    <span class="statusbar-sep">·</span>
+    <span id="statusbar-last-event">—</span>
+  </footer>
+
+  <!-- EXPORT MODAL -->
+  <div id="export-modal" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title"><i data-lucide="download"></i> Export Audit Report</span>
+        <button class="modal-close" id="btn-close-export">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Choose export format:</p>
+        <div class="export-options">
+          <button class="export-opt-btn" id="btn-export-json"><i data-lucide="file-json"></i> JSON Report</button>
+          <button class="export-opt-btn" id="btn-export-txt"><i data-lucide="clipboard-list"></i> Text Summary</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="width: 380px;">
+      <div class="modal-header">
+        <span class="modal-title"><i data-lucide="settings"></i> System Configuration</span>
+        <button class="modal-close" id="btn-close-settings">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; font-size: 11px; color: var(--text-secondary);">Configure the target Band.ai room and API keys. Make sure your agent is running in this room.</p>
+        <div class="settings-fields" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Room ID</label>
+            <input type="text" id="settings-room-id" style="background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; color: var(--text-primary); font-family: inherit; font-size: 12px; width: 100%; box-sizing: border-box;" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Planner API Key</label>
+            <input type="password" id="settings-api-key" style="background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; color: var(--text-primary); font-family: inherit; font-size: 12px; width: 100%; box-sizing: border-box;" />
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="upload-btn upload-btn--ghost" id="btn-reset-settings" style="font-size: 11px; padding: 5px 12px;">Reset Default</button>
+          <button class="upload-btn upload-btn--primary" id="btn-save-settings" style="font-size: 11px; padding: 5px 16px;">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="index.js" type="module"></script>
+</body>
+</html>

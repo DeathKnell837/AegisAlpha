@@ -13,3 +13,10 @@ cover_banner.png
 slides.html
 *.tmp
 .vercel/
+chat_with_claude.py
+implementation_plan.md
+scratch/
+scripts/audit_codebase.py
+scripts/verify_setup.py
+HACKATHON_CHECKLIST.md
+HACKATHON_GUIDE.md

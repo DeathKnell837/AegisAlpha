@@ -23,6 +23,15 @@ const BAND = {
   get API_KEY()  { return localStorage.getItem('lexaudit_api_key')  || 'band_a_1781282587_R_qQWK_569pK8JHbIr0sEKOY1VNTjXAS'; }
 };
 
+function getBackendUrl(path) {
+  const customUrl = localStorage.getItem('lexaudit_backend_url');
+  if (customUrl) {
+    const base = customUrl.replace(/\/$/, '');
+    return `${base}/${path.replace(/^\//, '')}`;
+  }
+  return path;
+}
+
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -573,12 +582,12 @@ async function resetDashboard() {
 
   // 3. Clear events.json via POST (awaited for reliability)
   try {
-    await fetch('reset', { method: 'POST' });
+    await fetch(getBackendUrl('reset'), { method: 'POST' });
   } catch(e) { console.warn('Reset endpoint failed:', e); }
 
   // 4. Fetch current size of event log on server to skip replaying past events
   try {
-    const res = await fetch(`${CONFIG.EVENTS_URL}?t=${Date.now()}`);
+    const res = await fetch(getBackendUrl(`${CONFIG.EVENTS_URL}?t=${Date.now()}`));
     if (res.ok) {
       const events = await res.json();
       state.lastEventIndex = events.length;
@@ -720,7 +729,7 @@ async function processEvent(ev) {
 async function pollEvents() {
   if (state.isSimulating) return;
   try {
-    const res = await fetch(`${CONFIG.EVENTS_URL}?t=${Date.now()}`);
+    const res = await fetch(getBackendUrl(`${CONFIG.EVENTS_URL}?t=${Date.now()}`));
     if (!res.ok) return;
     const events = await res.json();
 
@@ -818,7 +827,7 @@ async function sendContractToAgents(text, filename) {
   const message = `@rogiebacanto2002/planner-agent Please audit the following contract for compliance against ${frameworks}.\n\nCONTRACT NAME: ${shortName}\n\nCONTRACT TEXT:\n${truncated}`;
 
   try {
-    const res = await fetch(`/send-message?room_id=${BAND.ROOM_ID}`, {
+    const res = await fetch(getBackendUrl(`send-message?room_id=${BAND.ROOM_ID}`), {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${BAND.API_KEY}` },
       body:    JSON.stringify({ content: message, mentions: ['@rogiebacanto2002/planner-agent'] }),
@@ -1016,8 +1025,10 @@ window.addEventListener('load', () => {
     if (modal) {
       const roomInput = $('#settings-room-id');
       const keyInput = $('#settings-api-key');
+      const backendInput = $('#settings-backend-url');
       if (roomInput) roomInput.value = BAND.ROOM_ID;
       if (keyInput) keyInput.value = BAND.API_KEY;
+      if (backendInput) backendInput.value = localStorage.getItem('lexaudit_backend_url') || '';
       modal.style.display = 'flex';
     }
   });
@@ -1028,8 +1039,16 @@ window.addEventListener('load', () => {
   $('#btn-save-settings')?.addEventListener('click', async () => {
     const roomId = $('#settings-room-id')?.value.trim();
     const apiKey = $('#settings-api-key')?.value.trim();
+    const backendUrl = $('#settings-backend-url')?.value.trim();
     if (roomId) localStorage.setItem('lexaudit_room_id', roomId);
     if (apiKey) localStorage.setItem('lexaudit_api_key', apiKey);
+    if (backendUrl !== undefined) {
+      if (backendUrl) {
+        localStorage.setItem('lexaudit_backend_url', backendUrl);
+      } else {
+        localStorage.removeItem('lexaudit_backend_url');
+      }
+    }
     
     const modal = $('#settings-modal');
     if (modal) modal.style.display = 'none';
@@ -1040,6 +1059,7 @@ window.addEventListener('load', () => {
   $('#btn-reset-settings')?.addEventListener('click', async () => {
     localStorage.removeItem('lexaudit_room_id');
     localStorage.removeItem('lexaudit_api_key');
+    localStorage.removeItem('lexaudit_backend_url');
     const modal = $('#settings-modal');
     if (modal) modal.style.display = 'none';
     await resetDashboard();

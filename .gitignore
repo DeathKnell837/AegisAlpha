@@ -5,3 +5,11 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
+all_aiml_models.txt
+scratch_claude_models.txt
+claude_audit_report.md
+cover_banner.png
+slides.html
+*.tmp
+.vercel/

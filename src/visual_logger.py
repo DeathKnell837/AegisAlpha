@@ -119,16 +119,28 @@ class WrappedAgentTools:
                         print(f"[{self._role}-agent] Auto-appended sample_contract.txt content to handoff message.")
                 except Exception as e:
                     print(f"[{self._role}-agent] Failed to auto-append contract text: {e}")
-        # Convert mentions to a list of strings if present
+        # Convert mentions to a list of strings if present, filtering out self-mentions
         resolved_mentions = []
+        my_handle = ""
+        try:
+            from src.config import get_config
+            cfg = get_config()
+            _, _, my_handle = cfg.get_agent_credentials(f"{self._role}_agent")
+        except Exception as ex:
+            print(f"[{self._role}-agent] Warning: could not retrieve own handle for filtering: {ex}")
+
         if mentions:
             for m in mentions:
+                handle = ""
                 if isinstance(m, dict):
                     handle = m.get("handle")
-                    if handle:
-                        resolved_mentions.append(handle)
                 elif isinstance(m, str):
-                    resolved_mentions.append(m)
+                    handle = m
+                if handle:
+                    if my_handle and handle.lower() == my_handle.lower():
+                        print(f"[{self._role}-agent] Filtering out self-mention from input mentions: {handle}")
+                        continue
+                    resolved_mentions.append(handle)
 
         # Get valid handles from original tools participants
         valid_handles = []
@@ -154,6 +166,9 @@ class WrappedAgentTools:
                 matches = [p.get("handle") for p in participants if p.get("handle", "").lstrip("@").lower() == handle.lower()]
                 if matches:
                     orig_handle = matches[0]
+                    if my_handle and orig_handle.lower() == my_handle.lower():
+                        print(f"[{self._role}-agent] Filtering out self-mention parsed from text: {orig_handle}")
+                        continue
                     if orig_handle not in resolved_mentions:
                         resolved_mentions.append(orig_handle)
 

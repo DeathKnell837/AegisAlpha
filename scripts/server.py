@@ -148,7 +148,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         super().do_POST()
 
 def main():
-    PORT = 3000
+    import os
+    PORT = int(os.environ.get("PORT", 3000))
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
         print(f"Custom server started on port {PORT} (with /send-message CORS proxy)")

@@ -837,6 +837,30 @@ async function handleFile(file) {
   }
 }
 
+const STANDARD_FRAMEWORK_GUIDELINES = {
+  'GDPR': `GDPR Reference Guidelines:
+- GDPR-RULE-01 (Data Processing Agreement): Under GDPR Article 28, contracts involving personal data processing must specify the subject matter, duration, nature, and purpose of processing, the type of personal data, categories of data subjects, and the obligations/rights of the controller.
+- GDPR-RULE-02 (Security of Processing): Requires implementation of appropriate technical and organizational measures to ensure a level of security appropriate to the risk.
+- GDPR-RULE-03 (International Transfers): Personal data transfers outside the EEA require Standard Contractual Clauses (SCCs) or other approved transfer mechanisms.
+- GDPR-RULE-04 (Liability Caps): Limits on liability must not restrict statutory rights to compensation for data protection breaches under Article 82.`,
+
+  'CCPA': `CCPA/CPRA Reference Guidelines:
+- CCPA-RULE-01 (Service Provider Obligations): Service provider contracts must prohibit selling/sharing personal information, retaining/using/disclosing personal information for any purpose other than performing the business services, or combining it with other information.
+- CCPA-RULE-02 (Audit and Compliance Rights): Must allow the business to conduct reasonable audits and assessments to monitor service provider compliance.`,
+
+  'HIPAA': `HIPAA Reference Guidelines:
+- HIPAA-RULE-01 (Business Associate Contract): Contracts with Business Associates must restrict the use/disclosure of Protected Health Information (PHI) only as permitted by the contract or required by law, require the associate to safeguard PHI, report breaches, and return/destroy all PHI upon termination.`,
+
+  'SOC2': `SOC 2 Reference Guidelines:
+- SOC2-RULE-01 (Security & Confidentiality): Contracts must outline security controls, breach notification protocols, classification/handling of confidential data, and right to audit/receive annual SOC 2 Type II reports.`,
+
+  'SOX': `SOX Reference Guidelines:
+- SOX-RULE-01 (Internal Controls): Service providers impacting financial reporting must guarantee internal control over financial reporting, retain financial records for audit, and permit audits of financial controls.`,
+
+  'AML': `AML/KYC Reference Guidelines:
+- AML-RULE-01 (Due Diligence & Compliance): Contracts must require identity verification, sanction screening (e.g. OFAC compliance), transaction monitoring, and immediate reporting of suspicious activities.`
+};
+
 function getSelectedFrameworks() {
   return $$('.framework-chip.active').map(c => c.dataset.fw).join(', ');
 }
@@ -846,9 +870,25 @@ async function sendContractToAgents(text, filename) {
   const truncated  = text.length > CONFIG.MAX_CONTRACT_CHARS ? text.slice(0, CONFIG.MAX_CONTRACT_CHARS) + '\n\n[Note: contract was truncated due to size]' : text;
   const frameworks = getSelectedFrameworks() || 'GDPR, CCPA/CPRA, HIPAA, SOC 2, SOX, AML/KYC';
 
-  let message = `@rogiebacanto2002/planner-agent Please audit the following contract for compliance against ${frameworks}`;
+  const selectedFws = $$('.framework-chip.active').map(c => c.dataset.fw);
+  let standardRulesText = '';
+  selectedFws.forEach(fw => {
+    if (STANDARD_FRAMEWORK_GUIDELINES[fw]) {
+      standardRulesText += STANDARD_FRAMEWORK_GUIDELINES[fw] + '\n\n';
+    }
+  });
+
+  let combinedReferenceText = '';
+  if (standardRulesText) {
+    combinedReferenceText += standardRulesText;
+  }
   if (_referenceText) {
-    message += ` and the provided reference rules.\n\nREFERENCE RULES:\n${_referenceText}`;
+    combinedReferenceText += 'Uploaded Custom Reference Rules:\n' + _referenceText;
+  }
+
+  let message = `@rogiebacanto2002/planner-agent Please audit the following contract for compliance against ${frameworks}`;
+  if (combinedReferenceText.trim()) {
+    message += ` and the provided reference rules.\n\nREFERENCE RULES:\n${combinedReferenceText.trim()}`;
   } else {
     message += `.\n`;
   }

@@ -1040,6 +1040,7 @@ async function handleReferenceFile(file) {
     if (btnChooseRef) btnChooseRef.style.display = 'inline-block';
     if (btnClearRef) btnClearRef.style.display = 'none';
   }
+}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {

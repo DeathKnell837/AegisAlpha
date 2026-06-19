@@ -53,11 +53,11 @@ graph TD
     Server -->|Uploads Contract / Mentions Planner| BandRoom[Band Chat Room]
     
     subgraph Agents Network
-        BandRoom -->|"@PlannerAgent"| Planner[Planner Agent]
-        Planner -->|Creates 18-point Audit Plan| BandRoom
-        BandRoom -->|"@ExecutorAgent"| Executor[Executor Agent]
+        BandRoom -->|"@rogiebacanto2002/planner-agent"| Planner[Planner Agent]
+        Planner -->|Creates Structured Audit Plan| BandRoom
+        BandRoom -->|"@rogiebacanto2002/executor-agent"| Executor[Executor Agent]
         Executor -->|Performs Clause Audit & Confidence Scores| BandRoom
-        BandRoom -->|"@ReviewerAgent"| Reviewer[Reviewer Agent]
+        BandRoom -->|"@rogiebacanto2002/reviewer-agent"| Reviewer[Reviewer Agent]
         Reviewer -->|Adversarial Verdict, Exposure & Challenges| BandRoom
     end
 
@@ -65,7 +65,7 @@ graph TD
     Server -->|Polls events.json| UI[Web UI Dashboard]
 ```
 
-1. **Planner Agent:** Creates an audit blueprint (18 core compliance checkpoints) based on the contract type and context.
+1. **Planner Agent:** Creates an audit blueprint (structured compliance checkpoints) based on the contract type and context.
 2. **Executor Agent:** Iterates through every checkpoint, matches them against the contract text, generates findings, and assigns confidence scores.
 3. **Reviewer Agent:** Performs adversarial critique (Devil's Advocate), estimates dollar exposure, and assigns the final compliance verdict.
 
@@ -105,15 +105,15 @@ agents:
   planner_agent:
     id: "your-planner-agent-uuid"
     key: "your-planner-agent-api-key"
-    handle: "@PlannerAgent"
+    handle: "@rogiebacanto2002/planner-agent"
   executor_agent:
     id: "your-executor-agent-uuid"
     key: "your-executor-agent-api-key"
-    handle: "@ExecutorAgent"
+    handle: "@rogiebacanto2002/executor-agent"
   reviewer_agent:
     id: "your-reviewer-agent-uuid"
     key: "your-reviewer-agent-api-key"
-    handle: "@ReviewerAgent"
+    handle: "@rogiebacanto2002/reviewer-agent"
 ```
 
 ---

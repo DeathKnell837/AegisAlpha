@@ -838,27 +838,30 @@ async function handleFile(file) {
 }
 
 const STANDARD_FRAMEWORK_GUIDELINES = {
-  'GDPR': `GDPR Reference Guidelines:
+  'GDPR': `GDPR Reference Guidelines (Including EU-US Data Privacy Framework):
 - GDPR-RULE-01 (Data Processing Agreement): Under GDPR Article 28, contracts involving personal data processing must specify the subject matter, duration, nature, and purpose of processing, the type of personal data, categories of data subjects, and the obligations/rights of the controller.
-- GDPR-RULE-02 (Security of Processing): Requires implementation of appropriate technical and organizational measures to ensure a level of security appropriate to the risk.
-- GDPR-RULE-03 (International Transfers): Personal data transfers outside the EEA require Standard Contractual Clauses (SCCs) or other approved transfer mechanisms.
+- GDPR-RULE-02 (Security of Processing): Requires implementation of appropriate technical and organizational measures to ensure a level of security appropriate to the risk, including encryption and pseudonymization.
+- GDPR-RULE-03 (International Transfers): Personal data transfers outside the EEA require Standard Contractual Clauses (SCCs), adequacy decisions, or certification under the EU-US Data Privacy Framework (DPF) for US entities.
 - GDPR-RULE-04 (Liability Caps): Limits on liability must not restrict statutory rights to compensation for data protection breaches under Article 82.`,
 
-  'CCPA': `CCPA/CPRA Reference Guidelines:
+  'CCPA': `CCPA/CPRA Reference Guidelines (Latest Regulations):
 - CCPA-RULE-01 (Service Provider Obligations): Service provider contracts must prohibit selling/sharing personal information, retaining/using/disclosing personal information for any purpose other than performing the business services, or combining it with other information.
-- CCPA-RULE-02 (Audit and Compliance Rights): Must allow the business to conduct reasonable audits and assessments to monitor service provider compliance.`,
+- CCPA-RULE-02 (Opt-Out Support): Service providers must cooperate with the business to honor consumer opt-outs from selling/sharing personal information and requests to limit the use of sensitive personal information.
+- CCPA-RULE-03 (Audit and Compliance Rights): Must allow the business to conduct reasonable audits and assessments to monitor service provider compliance.`,
 
   'HIPAA': `HIPAA Reference Guidelines:
 - HIPAA-RULE-01 (Business Associate Contract): Contracts with Business Associates must restrict the use/disclosure of Protected Health Information (PHI) only as permitted by the contract or required by law, require the associate to safeguard PHI, report breaches, and return/destroy all PHI upon termination.`,
 
-  'SOC2': `SOC 2 Reference Guidelines:
-- SOC2-RULE-01 (Security & Confidentiality): Contracts must outline security controls, breach notification protocols, classification/handling of confidential data, and right to audit/receive annual SOC 2 Type II reports.`,
+  'SOC2': `SOC 2 Reference Guidelines (Security & Trust Criteria):
+- SOC2-RULE-01 (Security & Confidentiality): Contracts must outline security controls, breach notification protocols, classification/handling of confidential data, and right to audit/receive annual SOC 2 Type II reports.
+- SOC2-RULE-02 (Remote Work & Supply Chain): Agreements must define security policies for remote environments and requirements for third-party supply chain risk monitoring.`,
 
-  'SOX': `SOX Reference Guidelines:
-- SOX-RULE-01 (Internal Controls): Service providers impacting financial reporting must guarantee internal control over financial reporting, retain financial records for audit, and permit audits of financial controls.`,
+  'SOX': `SOX Reference Guidelines (Including SEC Cyber Disclosures):
+- SOX-RULE-01 (Internal Controls): Service providers impacting financial reporting must guarantee internal control over financial reporting, retain financial records for audit, and permit audits of financial controls.
+- SOX-RULE-02 (Incident Reporting): Agreements must require immediate reporting of material cybersecurity incidents to support the business's SEC cyber disclosure timelines.`,
 
-  'AML': `AML/KYC Reference Guidelines:
-- AML-RULE-01 (Due Diligence & Compliance): Contracts must require identity verification, sanction screening (e.g. OFAC compliance), transaction monitoring, and immediate reporting of suspicious activities.`
+  'AML': `AML/KYC Reference Guidelines (Economic Sanctions & Screening):
+- AML-RULE-01 (Due Diligence & Compliance): Contracts must require identity verification, sanction screening (e.g. OFAC/PEP compliance), transaction monitoring, and immediate reporting of suspicious activities.`
 };
 
 function getSelectedFrameworks() {

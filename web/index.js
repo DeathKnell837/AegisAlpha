@@ -19,7 +19,7 @@ const CONFIG = Object.freeze({
 
 const BAND = {
   get REST_URL() { return localStorage.getItem('lexaudit_rest_url') || 'https://app.band.ai'; },
-  get ROOM_ID()  { return localStorage.getItem('lexaudit_room_id')  || '821e2186-0fd1-42e4-9ba8-8e468f3b6c0c'; },
+  get ROOM_ID()  { return localStorage.getItem('lexaudit_room_id')  || '15c71300-086d-4f1d-a6f7-a14fc04e398d'; },
   get API_KEY()  { return localStorage.getItem('lexaudit_api_key')  || 'band_a_1781282587_R_qQWK_569pK8JHbIr0sEKOY1VNTjXAS'; }
 };
 

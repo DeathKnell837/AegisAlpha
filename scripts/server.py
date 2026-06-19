@@ -50,7 +50,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         elif path == '/send-message':
             # Get parameters
             query = parse_qs(parsed_url.query)
-            room_id = query.get('room_id', ['15c71300-086d-4f1d-a6f7-a14fc04e398d'])[0]
+            room_id = query.get('room_id', ['15c71300-086d-4f1d-a6f2-a14fc04e398d'])[0]
 
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length) if content_length > 0 else b''

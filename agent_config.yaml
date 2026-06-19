@@ -1,0 +1,18 @@
+# agent_config.yaml
+# Credentials for the Band of Agents hackathon agents
+
+planner_agent:
+  agent_id: "7b4960ce-0f45-4ca3-a4ab-52e40923e53a"
+  api_key: "${PLANNER_API_KEY}"
+  handle: "@rogiebacanto2002/planner-agent"
+
+executor_agent:
+  agent_id: "c174a118-a7a4-43c3-a56f-c98bc300b4b4"
+  api_key: "${EXECUTOR_API_KEY}"
+  handle: "@rogiebacanto2002/executor-agent"
+
+reviewer_agent:
+  agent_id: "b94d5ff2-d8df-488c-9cb5-e19cac8054ac"
+  api_key: "${REVIEWER_API_KEY}"
+  handle: "@rogiebacanto2002/reviewer-agent"
+

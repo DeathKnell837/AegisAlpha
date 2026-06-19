@@ -1,5 +1,4 @@
 .env
-agent_config.yaml
 start_claude.ps1
 __pycache__/
 *.pyc

@@ -24,7 +24,7 @@ const BAND = {
 };
 
 function getBackendUrl(path) {
-  const customUrl = localStorage.getItem('lexaudit_backend_url') || 'https://lexaudit-wfmt.onrender.com';
+  const customUrl = localStorage.getItem('lexaudit_backend_url') || 'https://lexaudit-wfmf.onrender.com';
   if (customUrl) {
     const base = customUrl.replace(/\/$/, '');
     return `${base}/${path.replace(/^\//, '')}`;
@@ -1028,7 +1028,7 @@ window.addEventListener('load', () => {
       const backendInput = $('#settings-backend-url');
       if (roomInput) roomInput.value = BAND.ROOM_ID;
       if (keyInput) keyInput.value = BAND.API_KEY;
-      if (backendInput) backendInput.value = localStorage.getItem('lexaudit_backend_url') || 'https://lexaudit-wfmt.onrender.com';
+      if (backendInput) backendInput.value = localStorage.getItem('lexaudit_backend_url') || 'https://lexaudit-wfmf.onrender.com';
       modal.style.display = 'flex';
     }
   });

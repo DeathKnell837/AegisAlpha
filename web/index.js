@@ -642,9 +642,12 @@ async function processEvent(ev) {
       if (nameEl) nameEl.textContent = meta.contract || '—';
       if (typeEl) typeEl.textContent = meta.contract_type || 'NDA';
 
-      const rawText = meta.contract_text ||
-        'MUTUAL NON-DISCLOSURE AGREEMENT\n1. Purpose: evaluate partnership.\n14. Liability: Neither party limits liability.\n16. Governing Law: Laws of North Korea.';
-      initDocumentViewer(rawText);
+      if (meta.contract_text) {
+        initDocumentViewer(meta.contract_text);
+      } else if (!state.docTotalLines) {
+        const rawText = 'MUTUAL NON-DISCLOSURE AGREEMENT\n1. Purpose: evaluate partnership.\n14. Liability: Neither party limits liability.\n16. Governing Law: Laws of North Korea.';
+        initDocumentViewer(rawText);
+      }
 
       renderChecklist((meta.checkpoints || []).map(cp => ({ title: cp, status: 'pending' })));
     }
@@ -786,13 +789,20 @@ async function extractDocxText(file) {
 async function handleFile(file) {
   if (!file) return;
   const name = file.name.toLowerCase();
-  if (!name.endsWith('.pdf') && !name.endsWith('.docx')) {
-    alert('Please upload a PDF or DOCX file.');
+  if (!name.endsWith('.pdf') && !name.endsWith('.docx') && !name.endsWith('.txt')) {
+    alert('Please upload a PDF, DOCX, or TXT file.');
     return;
   }
   showUploadState('upload-loading');
   try {
-    const text = name.endsWith('.pdf') ? await extractPdfText(file) : await extractDocxText(file);
+    let text = '';
+    if (name.endsWith('.pdf')) {
+      text = await extractPdfText(file);
+    } else if (name.endsWith('.docx')) {
+      text = await extractDocxText(file);
+    } else {
+      text = await file.text();
+    }
     if (!text || text.length < 10) throw new Error('No text found in file. Try a different file.');
 
     _extractedText     = text;

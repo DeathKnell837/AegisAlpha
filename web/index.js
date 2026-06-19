@@ -12,7 +12,7 @@ const CONFIG = Object.freeze({
   POLL_INTERVAL_MS: 1000,
   LINE_REVEAL_MS:   35,
   AGENT_ORDER:      ['planner', 'executor', 'reviewer'],
-  AGENT_TIMEOUT_MS: 120_000,   // 2 min — if no new event, show "offline"
+  AGENT_TIMEOUT_MS: 300_000,   // 5 min — if no new event, show "offline"
   MAX_CONTRACT_CHARS: 15_000,
   MAX_HISTORY:      5,
 });

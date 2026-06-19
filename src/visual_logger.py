@@ -216,7 +216,7 @@ class WrappedAgentTools:
             c_name = metadata.get("contract") or ""
             if c_name == "Mutual Non-Disclosure Agreement" or "<contract name>" in c_name or not c_name:
                 try:
-                    room_id = self._room_id or "821e2186-0fd1-42e4-9ba8-8e468f3b6c0c"
+                    room_id = self._room_id or "821e2108-0fd1-42e4-9ba0-0a480f3b6c0c"
                     context = await self._tools.fetch_room_context(room_id=room_id)
                     chat_messages = []
                     if isinstance(context, dict):

@@ -19,12 +19,12 @@ const CONFIG = Object.freeze({
 
 const BAND = {
   get REST_URL() { return localStorage.getItem('lexaudit_rest_url') || 'https://app.band.ai'; },
-  get ROOM_ID()  { return localStorage.getItem('lexaudit_room_id')  || '821e2186-0fd1-42e4-9ba8-8e468f3b6c0c'; },
+  get ROOM_ID()  { return localStorage.getItem('lexaudit_room_id')  || '821e2108-0fd1-42e4-9ba0-0a480f3b6c0c'; },
   get API_KEY()  { return localStorage.getItem('lexaudit_api_key')  || 'band_a_1781282587_R_qQWK_569pK8JHbIr0sEKOY1VNTjXAS'; }
 };
 
 function getBackendUrl(path) {
-  const customUrl = localStorage.getItem('lexaudit_backend_url');
+  const customUrl = localStorage.getItem('lexaudit_backend_url') || 'https://lexaudit-wfmt.onrender.com';
   if (customUrl) {
     const base = customUrl.replace(/\/$/, '');
     return `${base}/${path.replace(/^\//, '')}`;
@@ -1028,7 +1028,7 @@ window.addEventListener('load', () => {
       const backendInput = $('#settings-backend-url');
       if (roomInput) roomInput.value = BAND.ROOM_ID;
       if (keyInput) keyInput.value = BAND.API_KEY;
-      if (backendInput) backendInput.value = localStorage.getItem('lexaudit_backend_url') || '';
+      if (backendInput) backendInput.value = localStorage.getItem('lexaudit_backend_url') || 'https://lexaudit-wfmt.onrender.com';
       modal.style.display = 'flex';
     }
   });

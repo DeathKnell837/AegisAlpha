@@ -10,15 +10,16 @@ SEND_URL = f"{BASE_URL}/send-message?room_id=15c71300-086d-4f1d-a6f2-a14fc04e398
 EVENTS_URL = f"{BASE_URL}/events.json"
 
 # Standard guidelines mock (matching frontend implementation)
-gdpr_rules = """GDPR Reference Guidelines:
+gdpr_rules = """GDPR Reference Guidelines (Including EU-US Data Privacy Framework):
 - GDPR-RULE-01 (Data Processing Agreement): Under GDPR Article 28, contracts involving personal data processing must specify the subject matter, duration, nature, and purpose of processing, the type of personal data, categories of data subjects, and the obligations/rights of the controller.
-- GDPR-RULE-02 (Security of Processing): Requires implementation of appropriate technical and organizational measures to ensure a level of security appropriate to the risk.
-- GDPR-RULE-03 (International Transfers): Personal data transfers outside the EEA require Standard Contractual Clauses (SCCs) or other approved transfer mechanisms.
+- GDPR-RULE-02 (Security of Processing): Requires implementation of appropriate technical and organizational measures to ensure a level of security appropriate to the risk, including encryption and pseudonymization.
+- GDPR-RULE-03 (International Transfers): Personal data transfers outside the EEA require Standard Contractual Clauses (SCCs), adequacy decisions, or certification under the EU-US Data Privacy Framework (DPF) for US entities.
 - GDPR-RULE-04 (Liability Caps): Limits on liability must not restrict statutory rights to compensation for data protection breaches under Article 82."""
 
-ccpa_rules = """CCPA/CPRA Reference Guidelines:
+ccpa_rules = """CCPA/CPRA Reference Guidelines (Latest Regulations):
 - CCPA-RULE-01 (Service Provider Obligations): Service provider contracts must prohibit selling/sharing personal information, retaining/using/disclosing personal information for any purpose other than performing the business services, or combining it with other information.
-- CCPA-RULE-02 (Audit and Compliance Rights): Must allow the business to conduct reasonable audits and assessments to monitor service provider compliance."""
+- CCPA-RULE-02 (Opt-Out Support): Service providers must cooperate with the business to honor consumer opt-outs from selling/sharing personal information and requests to limit the use of sensitive personal information.
+- CCPA-RULE-03 (Audit and Compliance Rights): Must allow the business to conduct reasonable audits and assessments to monitor service provider compliance."""
 
 # Load sample contract
 print("Loading contract...")

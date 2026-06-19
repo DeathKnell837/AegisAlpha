@@ -13,8 +13,8 @@ from src.visual_logger import WrappedAgentTools, log_event
 
 # Maximum total character budget for chat history sent to the LLM.
 # Qwen2.5-32B has 32K token limit. ~4 chars per token, leave room for system prompt + response.
-MAX_CONTEXT_CHARS = 18_000
-MAX_SINGLE_MSG_CHARS = 3_000
+MAX_CONTEXT_CHARS = 80_000
+MAX_SINGLE_MSG_CHARS = 50_000
 
 def clean_mentions_for_llm(text: str) -> str:
     """Replaces raw UUID mention tags with clean, human-readable handle mentions for LLM context."""

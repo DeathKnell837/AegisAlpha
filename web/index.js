@@ -567,8 +567,18 @@ async function resetDashboard() {
   showUploadState('upload-idle');
   _extractedText     = '';
   _extractedFilename = '';
+  _referenceText     = '';
+  _referenceFilename = '';
   const fileInput = $('#file-input');
   if (fileInput) fileInput.value = '';
+  const refFileInput = $('#ref-file-input');
+  if (refFileInput) refFileInput.value = '';
+  const refLabel = $('#ref-status-label');
+  if (refLabel) refLabel.textContent = 'Audit contract against custom rules (PDF, DOCX, TXT)';
+  const btnChooseRef = $('#btn-choose-ref');
+  if (btnChooseRef) btnChooseRef.style.display = 'inline-block';
+  const btnClearRef = $('#btn-clear-ref');
+  if (btnClearRef) btnClearRef.style.display = 'none';
 
   // 2. Reset JS state variables
   state.lastSenderAgent  = null;
@@ -755,6 +765,8 @@ async function pollEvents() {
 // ─── UPLOAD PANEL ─────────────────────────────────────────────────────────────
 let _extractedText     = '';
 let _extractedFilename = '';
+let _referenceText     = '';
+let _referenceFilename = '';
 
 function showUploadState(id) {
   ['upload-idle','upload-loading','upload-ready','upload-sending','upload-sent']
@@ -834,7 +846,13 @@ async function sendContractToAgents(text, filename) {
   const truncated  = text.length > CONFIG.MAX_CONTRACT_CHARS ? text.slice(0, CONFIG.MAX_CONTRACT_CHARS) + '\n\n[Note: contract was truncated due to size]' : text;
   const frameworks = getSelectedFrameworks() || 'GDPR, CCPA/CPRA, HIPAA, SOC 2, SOX, AML/KYC';
 
-  const message = `@rogiebacanto2002/planner-agent Please audit the following contract for compliance against ${frameworks}.\n\nCONTRACT NAME: ${shortName}\n\nCONTRACT TEXT:\n${truncated}`;
+  let message = `@rogiebacanto2002/planner-agent Please audit the following contract for compliance against ${frameworks}`;
+  if (_referenceText) {
+    message += ` and the provided reference rules.\n\nREFERENCE RULES:\n${_referenceText}`;
+  } else {
+    message += `.\n`;
+  }
+  message += `\nCONTRACT NAME: ${shortName}\n\nCONTRACT TEXT:\n${truncated}`;
 
   try {
     const res = await fetch(getBackendUrl(`send-message?room_id=${BAND.ROOM_ID}`), {
@@ -933,9 +951,13 @@ function initUploadPanel() {
     if (!_extractedText) return;
     const text = _extractedText;
     const filename = _extractedFilename;
+    const refText = _referenceText;
+    const refFilename = _referenceFilename;
     showUploadState('upload-sending');
     try {
       await resetDashboard();
+      _referenceText = refText;
+      _referenceFilename = refFilename;
       await sendContractToAgents(text, filename);
       showUploadState('upload-sent');
     } catch(err) {
@@ -961,7 +983,63 @@ function initUploadPanel() {
   $$('.framework-chip').forEach(chip => {
     chip.addEventListener('click', () => chip.classList.toggle('active'));
   });
+
+  // Reference file input
+  const refFileInput = $('#ref-file-input');
+  const btnClearRef  = $('#btn-clear-ref');
+  const btnChooseRef = $('#btn-choose-ref');
+  refFileInput?.addEventListener('change', () => {
+    const f = refFileInput.files?.[0];
+    if (f) handleReferenceFile(f);
+  });
+  btnClearRef?.addEventListener('click', () => {
+    _referenceText = '';
+    _referenceFilename = '';
+    if (refFileInput) refFileInput.value = '';
+    const refLabel = $('#ref-status-label');
+    if (refLabel) refLabel.textContent = 'Audit contract against custom rules (PDF, DOCX, TXT)';
+    if (btnChooseRef) btnChooseRef.style.display = 'inline-block';
+    if (btnClearRef) btnClearRef.style.display = 'none';
+  });
 }
+
+async function handleReferenceFile(file) {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.pdf') && !name.endsWith('.docx') && !name.endsWith('.txt')) {
+    alert('Please upload a PDF, DOCX, or TXT file for reference guidelines.');
+    return;
+  }
+  const refLabel = $('#ref-status-label');
+  const btnChooseRef = $('#btn-choose-ref');
+  const btnClearRef = $('#btn-clear-ref');
+  if (refLabel) refLabel.textContent = 'Extracting reference rules...';
+  try {
+    let text = '';
+    if (name.endsWith('.pdf')) {
+      text = await extractPdfText(file);
+    } else if (name.endsWith('.docx')) {
+      text = await extractDocxText(file);
+    } else {
+      text = await file.text();
+    }
+    if (!text || text.length < 10) throw new Error('No text found in file.');
+
+    _referenceText = text;
+    _referenceFilename = file.name;
+
+    if (refLabel) refLabel.textContent = `Attached: ${file.name} (${text.length.toLocaleString()} chars)`;
+    if (btnChooseRef) btnChooseRef.style.display = 'none';
+    if (btnClearRef) btnClearRef.style.display = 'inline-block';
+  } catch (err) {
+    console.error(err);
+    alert('Error reading reference file: ' + err.message);
+    _referenceText = '';
+    _referenceFilename = '';
+    if (refLabel) refLabel.textContent = 'Audit contract against custom rules (PDF, DOCX, TXT)';
+    if (btnChooseRef) btnChooseRef.style.display = 'inline-block';
+    if (btnClearRef) btnClearRef.style.display = 'none';
+  }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {

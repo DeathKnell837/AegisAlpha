@@ -109,6 +109,19 @@
           </div>
         </div>
 
+        <!-- Reference Rules Upload (Optional) -->
+        <div id="reference-rules-container" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-strong); border-radius: 10px; box-sizing: border-box; width: 100%;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Compliance Guidelines (Optional)</span>
+            <span id="ref-status-label" style="font-size: 11px; color: var(--text-muted);">Audit contract against custom rules (PDF, DOCX, TXT)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label id="btn-choose-ref" class="upload-btn" for="ref-file-input" style="padding: 6px 12px; font-size: 11px; margin: 0; cursor: pointer;">Choose Rules</label>
+            <input type="file" id="ref-file-input" accept=".pdf,.docx,.txt" style="display:none" />
+            <button id="btn-clear-ref" class="upload-btn upload-btn--ghost" style="padding: 6px 12px; font-size: 11px; margin: 0; display: none;">Clear</button>
+          </div>
+        </div>
+
         <div id="upload-zone" class="upload-zone" role="button" tabindex="0" aria-label="Upload contract file">
           <div id="upload-idle" class="upload-state">
             <div class="upload-icon"><i data-lucide="file-text"></i></div>
@@ -137,12 +150,20 @@
             <div class="upload-spinner upload-spinner--planner"></div>
             <p class="upload-title">Sending to agents...</p>
             <p class="upload-sub">Planner agent is waking up</p>
+            <div class="progress-notice-card" style="margin-top: 15px; padding: 10px; border-radius: 8px; background: rgba(50, 140, 255, 0.08); border: 1px solid rgba(50, 140, 255, 0.25); text-align: center; max-width: 400px; box-sizing: border-box; width: 100%;">
+              <p style="font-size: 12px; font-weight: 700; color: #328cff; margin: 0 0 4px 0;"><i data-lucide="info" style="display:inline-block; width:14px; height:14px; vertical-align:middle; margin-right:4px;"></i> Multi-Agent Collaboration Active</p>
+              <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">Planner, Executor, and Reviewer are working sequentially. Please wait, this may take <strong>30–60 seconds</strong>.</p>
+            </div>
           </div>
           <div id="upload-sent" class="upload-state" style="display:none">
             <div class="upload-icon"><i data-lucide="rocket"></i></div>
             <p class="upload-title">Audit in progress!</p>
             <p class="upload-sub">Watch the dashboard update live below</p>
-            <button class="upload-btn upload-btn--ghost" id="btn-audit-another" style="margin-top:8px">Upload Another Contract</button>
+            <div class="progress-notice-card" style="margin-top: 15px; padding: 10px; border-radius: 8px; background: rgba(50, 140, 255, 0.08); border: 1px solid rgba(50, 140, 255, 0.25); text-align: center; max-width: 400px; box-sizing: border-box; width: 100%; margin-left: auto; margin-right: auto;">
+              <p style="font-size: 12px; font-weight: 700; color: #328cff; margin: 0 0 4px 0;"><i data-lucide="info" style="display:inline-block; width:14px; height:14px; vertical-align:middle; margin-right:4px;"></i> Audit in Progress</p>
+              <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">Reviewing clauses, generating counter-arguments, and estimating risks. Estimated time remaining: <strong>30–45 seconds</strong>.</p>
+            </div>
+            <button class="upload-btn upload-btn--ghost" id="btn-audit-another" style="margin-top:15px">Upload Another Contract</button>
           </div>
         </div>
       </div>

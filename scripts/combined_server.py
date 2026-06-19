@@ -33,12 +33,14 @@ async def start_agents():
     )
 
 async def run_agent(role: str):
-    try:
-        agent = build_agent(role)
-        print(f"[{role}-agent] Initialized successfully. Starting listener loop...")
-        await agent.run()
-    except Exception as e:
-        print(f"[{role}-agent] ERROR: {e}", file=sys.stderr)
+    while True:
+        try:
+            agent = build_agent(role)
+            print(f"[{role}-agent] Initialized successfully. Starting listener loop...")
+            await agent.run()
+        except Exception as e:
+            print(f"[{role}-agent] ERROR: {e}. Retrying in 10 seconds...", file=sys.stderr)
+            await asyncio.sleep(10)
 
 def run_async_loop():
     # Set up asyncio event loop for the agents

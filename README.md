@@ -73,16 +73,18 @@ graph TD
 
 ## 🔌 LLM Providers & Model Routing
 
-LexAudit integrates both **Featherless AI** and **AI/ML API** to demonstrate a robust, multi-provider model routing strategy that prevents model-specific cognitive biases:
+LexAudit integrates both **Featherless AI** and **AI/ML API** to demonstrate a robust, multi-provider model routing strategy that prevents model-specific cognitive biases.
 
-*   **Featherless AI (`https://api.featherless.ai/v1`):**
-    *   **Agents Powered:** **Planner Agent** & **Executor Agent**.
+To prevent demo failure due to credit/balance limitations (e.g., when the AI/ML API $10 hackathon credit is fully exhausted), **LexAudit defaults all agents to run on Featherless AI** out-of-the-box (using the active Featherless credits). However, the codebase is fully equipped with cross-provider model routing:
+
+*   **Default Configuration (Featherless AI):**
+    *   **Endpoint:** `https://api.featherless.ai/v1`
+    *   **Agents Powered:** **Planner**, **Executor**, and **Reviewer** (active in the live demo).
     *   **Model:** `Qwen/Qwen2.5-32B-Instruct`
-    *   **Rationale:** Hosts open-weights models with high-fidelity serverless execution. The Planner uses it to structure the audit scope, and the Executor uses it to perform strict clause-by-clause evaluation.
-*   **AI/ML API (`https://api.aimlapi.com/v1`):**
-    *   **Agent Powered:** **Reviewer Agent** (Adversarial Critic).
-    *   **Model:** `meta-llama/Llama-3.3-70B-Instruct-Turbo`
-    *   **Rationale:** Acts as the independent adversarial review layer (Devil's Advocate). By routing the critique through a completely separate API gateway and a different model architecture (Llama-3.3-70B), the system guarantees unbiased risk assessments and prevents executor echo chambers.
+*   **Optional Toggle (AI/ML API for Reviewer):**
+    *   **Endpoint:** `https://api.aimlapi.com/v1`
+    *   **Agent Powered:** **Reviewer Agent** (using `meta-llama/Llama-3.3-70B-Instruct-Turbo`).
+    *   **How to Activate:** Set `USE_AIMLAPI=true` in your `.env` file to route the Reviewer agent to AI/ML API. This enables true multi-provider and multi-model routing across separate API networks.
 
 ---
 

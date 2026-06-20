@@ -14,7 +14,7 @@ from src.config import get_config
 
 DEFAULT_PLANNER_MODEL = "Qwen/Qwen2.5-32B-Instruct"
 DEFAULT_EXECUTOR_MODEL = "Qwen/Qwen2.5-32B-Instruct"
-DEFAULT_REVIEWER_MODEL = "Qwen/Qwen2.5-32B-Instruct"
+DEFAULT_REVIEWER_MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
 
 class MockChatModel(BaseChatModel):
     role: str
@@ -249,6 +249,15 @@ def get_model_for_role(role: str) -> Any:
     cfg = get_config()
     if role == "reviewer":
         model_name = os.getenv("REVIEWER_MODEL", DEFAULT_REVIEWER_MODEL)
+        return ChatOpenAI(
+            model=model_name,
+            base_url="https://api.aimlapi.com/v1",
+            api_key=cfg.aimlapi_key,
+            temperature=0.1,
+            disable_streaming=True,
+            max_retries=5,
+            timeout=120,
+        )
     elif role == "planner":
         model_name = os.getenv("PLANNER_MODEL", DEFAULT_PLANNER_MODEL)
     elif role == "executor":

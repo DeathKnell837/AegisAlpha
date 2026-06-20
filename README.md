@@ -71,6 +71,21 @@ graph TD
 
 ---
 
+## 🔌 LLM Providers & Model Routing
+
+LexAudit integrates both **Featherless AI** and **AI/ML API** to demonstrate a robust, multi-provider model routing strategy that prevents model-specific cognitive biases:
+
+*   **Featherless AI (`https://api.featherless.ai/v1`):**
+    *   **Agents Powered:** **Planner Agent** & **Executor Agent**.
+    *   **Model:** `Qwen/Qwen2.5-32B-Instruct`
+    *   **Rationale:** Hosts open-weights models with high-fidelity serverless execution. The Planner uses it to structure the audit scope, and the Executor uses it to perform strict clause-by-clause evaluation.
+*   **AI/ML API (`https://api.aimlapi.com/v1`):**
+    *   **Agent Powered:** **Reviewer Agent** (Adversarial Critic).
+    *   **Model:** `meta-llama/Llama-3.3-70B-Instruct-Turbo`
+    *   **Rationale:** Acts as the independent adversarial review layer (Devil's Advocate). By routing the critique through a completely separate API gateway and a different model architecture (Llama-3.3-70B), the system guarantees unbiased risk assessments and prevents executor echo chambers.
+
+---
+
 ## 🛠️ Installation & Setup
 
 ### Prerequisites

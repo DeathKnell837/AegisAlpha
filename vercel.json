@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/slides", "dest": "/slides.html" },
-    { "src": "/index.css", "dest": "/web/index.css" },
-    { "src": "/index.js", "dest": "/web/index.js" },
-    { "src": "/(.*\\.(png|svg|jpg|jpeg|ico|json))", "dest": "/web/$1" },
-    { "src": "/(.*)", "dest": "/web/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" }
   ]
 }

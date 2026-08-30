@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisAlpha | Autonomous AI Options Desk</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="logo-mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#lg)" stroke-width="1.8" fill="none"/>
+          <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#lg)" opacity="0.2"/>
+          <path d="M14 10L18 12.5V17L14 19.5L10 17V12.5L14 10Z" fill="url(#lg)" opacity="0.55"/>
+          <defs><linearGradient id="lg" x1="2" y1="2" x2="26" y2="26"><stop stop-color="#00D4AA"/><stop offset="1" stop-color="#00B4D8"/></linearGradient></defs>
+        </svg>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="dashboard" data-tooltip="Dashboard"><i data-lucide="layout-dashboard"></i></button>
+        <button class="nav-btn" data-tab="trade" data-tooltip="Manual Trade"><i data-lucide="arrow-left-right"></i></button>
+        <button class="nav-btn" data-tab="positions" data-tooltip="Positions"><i data-lucide="briefcase"></i></button>
+        <button class="nav-btn" data-tab="agents" data-tooltip="AI Agents"><i data-lucide="cpu"></i></button>
+        <button class="nav-btn" data-tab="risk" data-tooltip="Risk Gates"><i data-lucide="shield-check"></i></button>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-avatar"><span>A</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN SHELL -->
+  <div class="shell">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-brand">
+          <span class="brand-name">Aegis<span class="brand-hi">Alpha</span></span>
+          <span class="brand-pipe"></span>
+          <span class="brand-tag">OPTIONS DESK</span>
+        </div>
+        <div class="topbar-chip">
+          <span class="chip-dot"></span>
+          <span class="chip-label">Paper</span>
+          <span class="chip-id">PA3PL5AZ85K6</span>
+          <span class="chip-tier">Lvl 3</span>
+        </div>
+      </div>
+      <div class="topbar-metrics">
+        <div class="tm"><span class="tm-l">Equity</span><span class="tm-v" id="hud-equity">$100,000.00</span></div>
+        <div class="tm-sep"></div>
+        <div class="tm"><span class="tm-l">Buying Power</span><span class="tm-v hi" id="hud-bp">$397,423.96</span></div>
+        <div class="tm-sep"></div>
+        <div class="tm"><span class="tm-l">Day P&amp;L</span><span class="tm-v pos" id="hud-pnl">+$0.00 (0.00%)</span></div>
+      </div>
+      <div class="topbar-actions">
+        <button id="btn-help" class="btn-help" title="How to use this dashboard"><i data-lucide="help-circle"></i></button>
+        <button id="btn-run-scan" class="btn-scan"><i data-lucide="zap"></i><span>AI Scan</span></button>
+        <button id="btn-kill-switch" class="btn-kill" title="Emergency Liquidation"><i data-lucide="octagon-x"></i></button>
+      </div>
+    </header>
+
+    <!-- CONTENT ZONE -->
+    <div class="content-zone">
+
+      <!-- MAIN AREA -->
+      <main class="main-area">
+
+        <!-- WATCHLIST -->
+        <section class="watchlist" id="watchlist-container">
+          <div class="wcard active" data-symbol="SPY">
+            <div class="wc-r1"><span class="wc-s">SPY</span><span class="wc-ch up">+0.82%</span></div>
+            <span class="wc-p">$769.28</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,15 10,12 20,14 30,8 40,10 50,5 60,7" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="QQQ">
+            <div class="wc-r1"><span class="wc-s">QQQ</span><span class="wc-ch up">+1.14%</span></div>
+            <span class="wc-p">$520.14</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,16 10,14 20,12 30,10 40,6 50,8 60,4" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="NVDA">
+            <div class="wc-r1"><span class="wc-s">NVDA</span><span class="wc-ch up">+2.45%</span></div>
+            <span class="wc-p">$132.80</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,18 10,14 20,16 30,10 40,8 50,4 60,3" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="AAPL">
+            <div class="wc-r1"><span class="wc-s">AAPL</span><span class="wc-ch dn">-0.35%</span></div>
+            <span class="wc-p">$232.10</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,6 10,8 20,7 30,12 40,14 50,13 60,16" fill="none" stroke="#F6465D" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="TSLA">
+            <div class="wc-r1"><span class="wc-s">TSLA</span><span class="wc-ch up">+1.90%</span></div>
+            <span class="wc-p">$214.50</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,17 10,14 20,16 30,9 40,12 50,6 60,5" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="MSFT">
+            <div class="wc-r1"><span class="wc-s">MSFT</span><span class="wc-ch up">+0.64%</span></div>
+            <span class="wc-p">$448.20</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,14 10,12 20,13 30,10 40,11 50,8 60,9" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+        </section>
+
+        <!-- REAL-TIME PORTFOLIO EARNINGS -->
+        <section class="earnings-strip">
+          <div class="earn-card main-earn">
+            <div class="earn-icon-box"><i data-lucide="wallet"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Total Portfolio Value</span>
+              <span class="earn-big" id="earn-equity">$100,000.00</span>
+            </div>
+          </div>
+          <div class="earn-card">
+            <div class="earn-icon-box green"><i data-lucide="trending-up"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Today's Earnings</span>
+              <span class="earn-big pos" id="earn-day">+$0.00</span>
+              <span class="earn-pct pos" id="earn-day-pct">0.00%</span>
+            </div>
+          </div>
+          <div class="earn-card">
+            <div class="earn-icon-box purple"><i data-lucide="bar-chart-3"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Unrealized P&amp;L</span>
+              <span class="earn-big" id="earn-unreal">$0.00</span>
+              <span class="earn-pct" id="earn-positions">0 positions</span>
+            </div>
+          </div>
+          <div class="earn-card">
+            <div class="earn-icon-box amber"><i data-lucide="clock"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Last Updated</span>
+              <span class="earn-big" id="earn-time" style="font-size:1rem">--:--:--</span>
+              <span class="earn-pct">Auto-refreshes every 10s</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- HERO CHART -->
+        <section class="card card-chart">
+          <div class="card-hd">
+            <div><h2 class="card-t">Options Payoff Curve</h2><span class="card-st">Defined-risk P&L across strike horizons</span></div>
+            <div class="stag" id="current-strategy-badge"><span class="stag-d"></span>Bull Call Spread</div>
+          </div>
+          <div class="chart-box"><canvas id="payoffChart"></canvas></div>
+        </section>
+
+        <!-- GREEKS -->
+        <section class="greeks-row">
+          <div class="gcard"><span class="gc-l">Delta</span><span class="gc-v pos" id="val-delta">+0.40</span><span class="gc-d">Directional Bias</span></div>
+          <div class="gcard"><span class="gc-l">Gamma</span><span class="gc-v hi" id="val-gamma">+0.034</span><span class="gc-d">Convexity Speed</span></div>
+          <div class="gcard"><span class="gc-l">Theta</span><span class="gc-v neg" id="val-theta">-0.27</span><span class="gc-d">Time Decay/Day</span></div>
+          <div class="gcard"><span class="gc-l">Vega</span><span class="gc-v pur" id="val-vega">+0.46</span><span class="gc-d">IV Sensitivity</span></div>
+          <div class="gcard"><span class="gc-l">Implied Vol</span><span class="gc-v hi" id="iv-val">9.34%</span><div class="gc-bar"><div class="gc-fill" style="width:42%"></div></div></div>
+        </section>
+
+        <!-- MANUAL TRADE PANEL -->
+        <section class="card trade-panel" id="trade-panel">
+          <div class="card-hd">
+            <div>
+              <h2 class="card-t">Manual Trade</h2>
+              <span class="card-st">Search options chains and place orders manually</span>
+            </div>
+          </div>
+          <div class="trade-form">
+            <div class="tf-row">
+              <div class="tf-group">
+                <label class="tf-label">Symbol</label>
+                <input type="text" id="trade-symbol" class="tf-input" placeholder="SPY" value="SPY">
+              </div>
+              <button id="btn-load-chain" class="btn-chain"><i data-lucide="search"></i><span>Load Chain</span></button>
+            </div>
+            <div id="chain-status" class="chain-status"></div>
+            <div id="chain-results" class="chain-results"></div>
+            <div class="tf-order" id="order-form" style="display:none">
+              <div class="tf-row">
+                <div class="tf-group">
+                  <label class="tf-label">Contract</label>
+                  <input type="text" id="order-contract" class="tf-input" readonly>
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Qty</label>
+                  <input type="number" id="order-qty" class="tf-input" value="1" min="1" max="10">
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Side</label>
+                  <select id="order-side" class="tf-input">
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                  </select>
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Type</label>
+                  <select id="order-type" class="tf-input">
+                    <option value="limit">Limit</option>
+                    <option value="market">Market</option>
+                  </select>
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Limit $</label>
+                  <input type="number" id="order-limit" class="tf-input" step="0.01" placeholder="0.00">
+                </div>
+              </div>
+              <button id="btn-place-order" class="btn-order"><i data-lucide="send"></i><span>Place Order</span></button>
+              <div id="order-status" class="order-status"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HOLDINGS & ORDERS TABLE -->
+        <section class="card card-pos">
+          <div class="card-hd">
+            <div style="display:flex;align-items:center;gap:12px">
+              <button id="tab-btn-pos" class="tab-pill active" onclick="switchHoldingTab('pos')">Active Positions <span id="badge-pos-count" class="tab-badge">0</span></button>
+              <button id="tab-btn-ord" class="tab-pill" onclick="switchHoldingTab('ord')">Live Orders <span id="badge-ord-count" class="tab-badge">0</span></button>
+            </div>
+            <button id="btn-refresh-positions" class="btn-ghost" title="Refresh"><i data-lucide="rotate-cw"></i></button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="tbl-positions">
+              <thead><tr><th>Position</th><th>Type</th><th>Qty</th><th>Avg Price</th><th>Mark</th><th>Mkt Value</th><th>P&amp;L</th><th></th></tr></thead>
+              <tbody id="positions-tbody">
+                <tr><td colspan="8" class="empty-cell"><div class="empty-box"><i data-lucide="inbox"></i><span>No active positions. Run AI Scan or place a manual order.</span></div></td></tr>
+              </tbody>
+            </table>
+            <table class="tbl" id="tbl-orders" style="display:none">
+              <thead><tr><th>Order ID</th><th>Contract / Symbol</th><th>Side</th><th>Qty</th><th>Type</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+              <tbody id="orders-tbody">
+                <tr><td colspan="8" class="empty-cell"><div class="empty-box"><i data-lucide="inbox"></i><span>No recent orders.</span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- RIGHT PANEL -->
+      <aside class="right-panel">
+
+        <div class="card card-agents">
+          <div class="card-hd"><div><h2 class="card-t">Agent Pipeline</h2><span class="card-st">Multi-Agent Intelligence</span></div></div>
+          <div class="agent-flow">
+            <div class="ag-node"><div class="ag-ic teal"><i data-lucide="activity"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Market Scanner</span><span class="ag-bg teal">ONLINE</span></div><span class="ag-dt">IEX Bars &amp; 30-Day Realized Vol</span></div></div>
+            <div class="ag-line"></div>
+            <div class="ag-node"><div class="ag-ic amber"><i data-lucide="brain-circuit"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Alpha Strategist</span><span class="ag-bg amber">Qwen-2.5-72B</span></div><span class="ag-dt">Volatility Regime &amp; Convexity</span></div></div>
+            <div class="ag-line"></div>
+            <div class="ag-node"><div class="ag-ic purple"><i data-lucide="binary"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Greeks Engine</span><span class="ag-bg purple">Indicative</span></div><span class="ag-dt">0.40/0.20 Delta Structuring</span></div></div>
+            <div class="ag-line"></div>
+            <div class="ag-node"><div class="ag-ic green"><i data-lucide="shield-check"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Risk Gatekeeper</span><span class="ag-bg green">ZERO-LLM</span></div><span class="ag-dt">7 Deterministic Constraints</span></div></div>
+          </div>
+        </div>
+
+        <div class="card card-feed">
+          <div class="card-hd"><div><h2 class="card-t">Decision Feed</h2><span class="card-st">Live risk audit verdicts</span></div></div>
+          <div id="decision-feed" class="feed-scroll">
+            <div class="feed-empty"><i data-lucide="radio"></i><span>Standing by. Launch a scan to see decisions.</span></div>
+          </div>
+        </div>
+
+        <div class="card card-guard">
+          <div class="guard-hd"><i data-lucide="lock"></i><span>7 Hardcoded Guardrails</span></div>
+          <div class="guard-list">
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Defined-Risk Spreads Only</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Max 2% Risk per Position</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Max 20% Options Exposure</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Bid-Ask Slippage &lt;15%</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Duration Window 5-45 DTE</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>-3% Daily Drawdown Breaker</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Dynamic Unit Risk Sizing</span></div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+
+  <!-- HELP / INSTRUCTIONS OVERLAY -->
+  <div id="help-overlay" class="help-overlay" style="display:none">
+    <div class="help-modal">
+      <div class="help-header">
+        <h2>Welcome to AegisAlpha</h2>
+        <button id="btn-close-help" class="help-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="help-body">
+
+        <div class="help-section help-highlight">
+          <h3><i data-lucide="sparkles"></i> The AI does everything for you</h3>
+          <p>You don't need to know anything about trading. AegisAlpha has <strong>4 AI agents</strong> that automatically find opportunities, pick the safest trades, and place them for you. All you do is click <strong>one button</strong>.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="zap"></i> How to start (1 step)</h3>
+          <p>Click the green <strong>"AI Scan"</strong> button in the top right corner. That's it. The AI will scan the market, find opportunities, check if they're safe, and make trades automatically. Results appear in the "Decision Feed" on the right.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="wallet"></i> Your Money (the big numbers)</h3>
+          <p><strong>Total Portfolio Value</strong> &mdash; How much money is in your account right now. This is the main number to watch.</p>
+          <p><strong>Today's Earnings</strong> &mdash; How much you've made (or lost) just today. Green = you're making money. Red = you're losing money.</p>
+          <p><strong>Unrealized P&amp;L</strong> &mdash; Money you've made on trades that are still open (not sold yet). Think of it as "paper profit" &mdash; it becomes real when the AI closes the trade.</p>
+          <p><strong>Buying Power</strong> &mdash; How much money is still available to make new trades.</p>
+          <p>All these numbers update automatically every 10 seconds. You don't need to refresh.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="activity"></i> Stock Tickers (top row)</h3>
+          <p>These are the stocks the AI watches: SPY, QQQ, NVDA, AAPL, TSLA, MSFT. The green/red tag shows if the price went up or down today. The tiny line chart shows the recent trend.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="trending-up"></i> The Big Chart</h3>
+          <p>This shows how much money a trade could make or lose at different stock prices. Above the $0 line = profit. Below = loss. You don't need to read this &mdash; the AI uses it internally to pick the best trades.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="sliders-horizontal"></i> The Numbers Below the Chart (Delta, Gamma, etc.)</h3>
+          <p>These are advanced trading metrics the AI uses to make decisions. <strong>You can completely ignore these.</strong> They exist so judges and advanced users can verify the AI is making smart choices.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="cpu"></i> Agent Pipeline (right side)</h3>
+          <p>This shows the 4 AI workers and what each one does:</p>
+          <p><strong>Market Scanner</strong> &mdash; Checks stock prices and trends</p>
+          <p><strong>Alpha Strategist</strong> &mdash; The AI brain that picks trading strategies</p>
+          <p><strong>Greeks Engine</strong> &mdash; Builds the exact trade with precise numbers</p>
+          <p><strong>Risk Gatekeeper</strong> &mdash; A safety checker that blocks any dangerous trade (no AI can override this)</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="radio"></i> Decision Feed (right side)</h3>
+          <p>After you click "AI Scan", this shows what the AI decided for each stock. <strong>Green "Approved"</strong> = the trade passed all safety checks and was placed. <strong>Red "Vetoed"</strong> = the trade was too risky and was blocked.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="shield-check"></i> 7 Safety Rules</h3>
+          <p>These are built-in safety limits that <strong>no one can turn off</strong> &mdash; not even the AI. They prevent the system from ever risking too much of your money. Think of them as guardrails on a highway.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="briefcase"></i> Active Positions</h3>
+          <p>Shows any trades currently open. Each row shows what was bought, at what price, and how much money it's making or losing right now. The "Close" button sells the position immediately.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="octagon-x"></i> The Red Button (top right)</h3>
+          <p><strong>Emergency stop.</strong> Instantly sells everything and cancels all pending trades. Only use this if something goes wrong and you want to pull out immediately.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="info"></i> Important Note</h3>
+          <p>This is a <strong>paper trading</strong> account &mdash; it uses fake money ($100,000). No real money is at risk. This is a safe sandbox where you can watch the AI work without any consequences.</p>
+        </div>
+
+  <!-- KILL SWITCH MODAL -->
+  <div id="kill-modal" class="help-overlay" style="display:none">
+    <div class="help-modal modal-sm">
+      <div class="help-header">
+        <h2 style="color:var(--red);display:flex;align-items:center;gap:8px"><i data-lucide="alert-triangle"></i> Emergency Liquidation</h2>
+        <button id="btn-cancel-kill-x" class="help-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="help-body">
+        <p style="font-size:0.85rem;color:var(--t1)">Are you sure you want to execute emergency liquidation? This will <strong>market-close all open positions</strong> and <strong>cancel all pending orders</strong> immediately.</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button id="btn-cancel-kill" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-kill" class="btn-danger"><i data-lucide="octagon-x"></i> Confirm Close All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOSE POSITION MODAL -->
+  <div id="close-modal" class="help-overlay" style="display:none">
+    <div class="help-modal modal-sm">
+      <div class="help-header">
+        <h2>Close Position</h2>
+        <button id="btn-cancel-close-x" class="help-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="help-body">
+        <p id="close-modal-text" style="font-size:0.85rem;color:var(--t1)">Close position?</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button id="btn-cancel-close" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-close" class="btn-danger">Close Position</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="index.js"></script>
+</body>
+</html>

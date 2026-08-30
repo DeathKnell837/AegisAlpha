@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AegisOptions Presentation Slides</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #090d16;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 60px 90px;
+      position: relative;
+      background: radial-gradient(circle at 85% 15%, #1e1b4b 0%, #090d16 100%);
+      border-bottom: 2px solid #1e293b;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 20px;
+    }
+
+    .project-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #fcd72b;
+      text-transform: uppercase;
+    }
+
+    .slide-number {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 0;
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #fcd72b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 38px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+
+    p.subtitle {
+      font-size: 22px;
+      color: #94a3b8;
+      max-width: 850px;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 25px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card h3 {
+      font-size: 20px;
+      color: #fcd72b;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      font-size: 15px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 8px;
+      margin-top: 15px;
+      background: rgba(252, 215, 43, 0.15);
+      color: #fcd72b;
+      border: 1px solid rgba(252, 215, 43, 0.3);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #64748b;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        page-break-after: always;
+        border-bottom: none;
+        background: radial-gradient(circle at 80% 20%, #1e1b4b 0%, #0f172a 100%) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide 1: Title -->
+  <section class="slide">
+    <div class="header">
+      <span class="project-name">LexAudit</span>
+      <span class="slide-number">01 / 05</span>
+    </div>
+    <div class="content">
+      <h1 class="title">LexAudit</h1>
+      <h2 class="subtitle">Multi-Agent Legal Contract Compliance Auditing</h2>
+      <p class="text">An advanced, automated audit dashboard powered by a 3-agent collaborative pipeline on the Band platform, providing deep risk assessment, adversarial review, and dollar-exposure estimation.</p>
+    </div>
+    <div class="footer">
+      <span>Band of Agents Hackathon 2026</span>
+      <span>Presented by: Team LexAudit</span>
+    </div>
+  </section>
+
+  <!-- Slide 2: The Problem -->
+  <section class="slide">
+    <div class="header">
+      <span class="project-name">LexAudit</span>
+      <span class="slide-number">02 / 05</span>
+    </div>
+    <div class="content">
+      <h3 class="slide-title">The Challenge in Contract Compliance</h3>
+      <div class="grid">
+        <div class="card">
+          <h4>Slow & Costly Manual Auditing</h4>
+          <p>Legal teams spend dozens of hours reviewing NDAs and commercial agreements clause-by-clause, delaying business operations and sales cycles.</p>
+        </div>
+        <div class="card">
+          <h4>Hidden Liabilities & Risks</h4>
+          <p>Standard LLMs lack context and often miss hidden risks or loopholes unless evaluated from opposing party perspectives.</p>
+        </div>
+        <div class="card">
+          <h4>Lack of Audit Traceability</h4>
+          <p>Traditional AI tools operate as a single black box without planning, critiquing, or visual collaboration trails.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Band of Agents Hackathon 2026</span>
+      <span>Problem Space</span>
+    </div>
+  </section>
+
+  <!-- Slide 3: Multi-Agent Architecture -->
+  <section class="slide">
+    <div class="header">
+      <span class="project-name">LexAudit</span>
+      <span class="slide-number">03 / 05</span>
+    </div>
+    <div class="content">
+      <h3 class="slide-title">3-Agent Pipeline Architecture</h3>
+      <div class="grid">
+        <div class="card">
+          <h4>1. Planner Agent</h4>
+          <p>Analyzes the contract type (e.g. NDA, MSA) and creates a target compliance plan of 18 specific legal checkpoints.</p>
+        </div>
+        <div class="card">
+          <h4>2. Executor Agent</h4>
+          <p>Executes the checklist. Reviews clauses line-by-line, identifies gaps, logs findings, and assigns confidence ratings.</p>
+        </div>
+        <div class="card">
+          <h4>3. Reviewer Agent</h4>
+          <p>Critiques findings, runs adversarial simulation, calculates financial exposure, and issues the final compliance verdict.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Band of Agents Hackathon 2026</span>
+      <span>Architecture & Routing</span>
+    </div>
+  </section>
+
+  <!-- Slide 4: Unique Features -->
+  <section class="slide">
+    <div class="header">
+      <span class="project-name">LexAudit</span>
+      <span class="slide-number">04 / 05</span>
+    </div>
+    <div class="content">
+      <h3 class="slide-title">Key Innovations</h3>
+      <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <h4>🗡️ Devil's Advocate Mode</h4>
+          <p>The Reviewer agent critiques the Executor's findings from the opposing party's view, identifying hidden loopholes and challenging findings.</p>
+        </div>
+        <div class="card">
+          <h4>📊 Confidence Heatmap</h4>
+          <p>Visualizes confidence alignment between the Executor and Reviewer per checkpoint to highlight where human review is needed.</p>
+        </div>
+        <div class="card">
+          <h4>💰 Dollar Exposure Estimation</h4>
+          <p>Estimates and aggregates potential financial liability ranges for critical vulnerabilities, presenting it in a global risk banner.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Band of Agents Hackathon 2026</span>
+      <span>Innovation & UI</span>
+    </div>
+  </section>
+
+  <!-- Slide 5: Tech Stack & Value -->
+  <section class="slide">
+    <div class="header">
+      <span class="project-name">LexAudit</span>
+      <span class="slide-number">05 / 05</span>
+    </div>
+    <div class="content">
+      <h3 class="slide-title">Technology & Business Impact</h3>
+      <div class="grid">
+        <div class="card">
+          <h4>The Tech Stack</h4>
+          <p>Built with Python, Band SDK (WebSocket & REST API client), LangGraph, Featherless.ai (open-weights models), and custom HTML5/CSS3 dashboard.</p>
+        </div>
+        <div class="card">
+          <h4>Robust Execution</h4>
+          <p>Includes proactive context overflow handling, dynamic contract name parsing, and comprehensive memory/reset controls.</p>
+        </div>
+        <div class="card">
+          <h4>Business Value</h4>
+          <p>Speeds up legal audits by 90% while adding defensive, adversarial evaluation that normal AI tools cannot provide.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Band of Agents Hackathon 2026</span>
+      <span>Tech Stack & Value</span>
+    </div>
+  </section>
+
+</body>
+</html>

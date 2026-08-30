@@ -1,5 +1,9 @@
 # ⚡ AegisOptions: Autonomous Multi-Agent Options Alpha Desk
 
+<div align="center">
+  <img src="team_banner.jpg" alt="Returnee Team Banner" width="100%" style="border-radius:12px;margin-bottom:16px;" />
+</div>
+
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Dashboard-00D4AA.svg)](https://aegis-alpha-desk.vercel.app)
 [![Alpaca Trading API](https://img.shields.io/badge/Alpaca-Trading%20API-yellow.svg)](https://alpaca.markets)
 [![FastMCP Server](https://img.shields.io/badge/MCP-FastMCP%202.0-blue.svg)](https://github.com/alpacahq/alpaca-mcp-server)
@@ -7,7 +11,7 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.14-green.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AegisOptions** is an autonomous quantitative options trading system engineered for the **LabLab.ai × Alpaca AI Trading Agents Hackathon**. It combines serverless open-source model inference via **Featherless AI** (`Qwen/Qwen2.5-72B-Instruct`), real-time option chains and Greeks from **Alpaca's Trading API**, a standalone **FastMCP Server**, and a strict **Deterministic Risk Engine (Zero-LLM Authority)**.
+**AegisOptions** is an autonomous quantitative options trading system engineered for the **LabLab.ai × Alpaca AI Trading Agents Hackathon** by solo builder team **Returnee**. It combines serverless open-source model inference via **Featherless AI** (`Qwen/Qwen2.5-72B-Instruct`), real-time option chains and Greeks from **Alpaca's Trading API**, a standalone **FastMCP Server**, and a strict **Deterministic Risk Engine (Zero-LLM Authority)**.
 
 🌐 **Live Production App**: [https://aegis-alpha-desk.vercel.app](https://aegis-alpha-desk.vercel.app)  
 📊 **Interactive Pitch Slides**: [https://aegis-alpha-desk.vercel.app/slides.html](https://aegis-alpha-desk.vercel.app/slides.html)

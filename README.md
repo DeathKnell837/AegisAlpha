@@ -1,12 +1,16 @@
 # ⚡ AegisOptions: Autonomous Multi-Agent Options Alpha Desk
 
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Dashboard-00D4AA.svg)](https://aegis-alpha-desk.vercel.app)
 [![Alpaca Trading API](https://img.shields.io/badge/Alpaca-Trading%20API-yellow.svg)](https://alpaca.markets)
 [![FastMCP Server](https://img.shields.io/badge/MCP-FastMCP%202.0-blue.svg)](https://github.com/alpacahq/alpaca-mcp-server)
-[![Featherless AI](https://img.shields.io/badge/Inference-Featherless%20AI-purple.svg)](https://featherless.ai)
+[![Featherless AI](https://img.shields.io/badge/Inference-Qwen%2072B%20Featherless-purple.svg)](https://featherless.ai)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.14-green.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AegisOptions** is an autonomous quantitative options trading system engineered for the **LabLab.ai × Alpaca AI Trading Agents Hackathon**. It combines serverless open-source model inference via **Featherless AI** (`Qwen/Qwen2.5-7B-Instruct`), real-time option chains and Greeks from **Alpaca's Trading API**, a standalone **FastMCP Server**, and a strict **Deterministic Risk Engine (Zero-LLM Authority)**.
+**AegisOptions** is an autonomous quantitative options trading system engineered for the **LabLab.ai × Alpaca AI Trading Agents Hackathon**. It combines serverless open-source model inference via **Featherless AI** (`Qwen/Qwen2.5-72B-Instruct`), real-time option chains and Greeks from **Alpaca's Trading API**, a standalone **FastMCP Server**, and a strict **Deterministic Risk Engine (Zero-LLM Authority)**.
+
+🌐 **Live Production App**: [https://aegis-alpha-desk.vercel.app](https://aegis-alpha-desk.vercel.app)  
+📊 **Interactive Pitch Slides**: [https://aegis-alpha-desk.vercel.app/slides.html](https://aegis-alpha-desk.vercel.app/slides.html)
 
 ---
 
@@ -24,29 +28,29 @@
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion ["1. Real-Time Market & Options Ingestion"]
-        A[Alpaca IEX Data Client] --> M[Market Momentum & Volatility Scanner]
-        B[Alpaca Options Data Client] --> OC[Option Chains & Live Greeks: Delta, Gamma, Theta, IV]
+    subgraph S1["1. Market & Options Ingestion"]
+        A["Alpaca IEX Data Client"] --> M["Market Momentum & Volatility Scanner"]
+        B["Alpaca Options Data Client"] --> OC["Option Chains & Greeks (Delta, Gamma, Vega, IV)"]
     end
 
-    subgraph Reasoning ["2. Autonomous AI Desk (Featherless AI)"]
-        M --> Alpha[Alpha Strategist Agent\nFormulates Regime & Spread Hypotheses]
-        OC --> Quant[Quantitative Greeks Optimizer\nSelects 0.40 / 0.20 Delta Strikes]
+    subgraph S2["2. Autonomous AI Desk (Featherless AI)"]
+        M --> Alpha["Alpha Strategist (Qwen-2.5-72B)\nRegime & Spread Hypotheses"]
+        OC --> Quant["Quantitative Greeks Optimizer\n0.40 / 0.20 Delta Strike Selection"]
         Alpha --> Quant
     end
 
-    subgraph Guardrails ["3. Deterministic Risk Engine (Zero-LLM Authority)"]
-        Quant --> Gate{7 Mathematical Safety Gates\n• Defined-Risk Spreads Only\n• Max 2% Equity Risk per Trade\n• Max 20% Portfolio Options Allocation\n• Bid-Ask Spread Liquidity Gate (<15%)\n• DTE Target: 5 to 45 Days\n• -3% Daily Drawdown Circuit Breaker\n• Dynamic Position Downscaling}
-        Gate -- REJECT / DOWNSIZE --> Log[Audit Telemetry: Trade Vetoed/Resized]
+    subgraph S3["3. Deterministic Risk Engine (Zero-LLM Authority)"]
+        Quant --> Gate{"7 Hardcoded Safety Gates\n(Defined Risk, Max 2% Equity Risk, Drawdown Breaker)"}
+        Gate -- REJECT / DOWNSIZE --> Log["Audit Telemetry (Trade Vetoed / Resized)"]
     end
 
-    subgraph Execution ["4. Alpaca Execution Layer"]
-        Gate -- APPROVED --> FastMCP[Alpaca Trading Client / FastMCP Server]
-        FastMCP --> Broker[Alpaca Paper Account PA3PL5AZ85K6]
+    subgraph S4["4. Alpaca Execution Layer"]
+        Gate -- APPROVED --> FastMCP["Alpaca Trading Client / FastMCP Server"]
+        FastMCP --> Broker["Alpaca Paper Account PA3PL5AZ85K6"]
     end
 
-    subgraph UI ["5. Observability & Control"]
-        Broker --> Dash[Streamlit Real-Time Dashboard]
+    subgraph S5["5. Observability & Web UI"]
+        Broker --> Dash["Quantum Dark Web Dashboard\n(Live Orders, Payoff Curves, P&L)"]
         Log --> Dash
     end
 ```

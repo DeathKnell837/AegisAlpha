@@ -17,10 +17,43 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--t1);font-family:var(--f);display:flex;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{
+  background-color: var(--bg);
+  background-image: 
+    linear-gradient(180deg, rgba(11, 14, 17, 0.87) 0%, rgba(11, 14, 17, 0.95) 100%),
+    radial-gradient(circle at 85% 15%, rgba(0, 212, 170, 0.09) 0%, transparent 45%),
+    radial-gradient(circle at 15% 85%, rgba(45, 156, 219, 0.07) 0%, transparent 45%),
+    url('team_banner.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--t1);
+  font-family: var(--f);
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
 /* SIDEBAR */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:20px 0;z-index:200}
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:var(--sw);
+  background:rgba(15, 18, 24, 0.82);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-right:1px solid var(--bd);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 0;
+  z-index:200;
+}
 .sidebar-top{display:flex;flex-direction:column;align-items:center;gap:28px}
 .logo-mark{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .brand-logo-img{width:36px;height:36px;border-radius:var(--r2);object-fit:cover;box-shadow:0 0 14px rgba(0,212,170,.35);transition:all .25s}
@@ -41,7 +74,20 @@ body{background:var(--bg);color:var(--t1);font-family:var(--f);display:flex;min-
 .shell{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
 
 /* TOPBAR */
-.topbar{height:var(--th);background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100}
+.topbar{
+  height:var(--th);
+  background:rgba(15, 18, 24, 0.82);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--bd);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
 .topbar-left{display:flex;align-items:center;gap:16px}
 .topbar-brand{display:flex;align-items:center;gap:10px}
 .topbar-logo-img{width:26px;height:26px;border-radius:var(--r3);object-fit:cover;box-shadow:0 0 8px rgba(0,212,170,.35)}

@@ -3,32 +3,37 @@
 
 ---
 
-### 🚀 Post 1: Kickoff & Vision
-> ⚡ Excited to build **AegisOptions** for the @AlpacaHQ × @lablabai AI Trading Agents Hackathon!
+### 🚀 Post 1: Hackathon Project Announcement (For X / Twitter / LinkedIn)
+> ⚡ Proud to introduce **AegisAlpha** for the @AlpacaHQ × @lablabai AI Trading Agents Hackathon!
 > 
-> We're creating an autonomous options alpha desk combining:
-> 🧠 @FeatherlessAI serverless LLMs for market regime discovery
-> 📊 Real-time Alpaca Options chains & Greeks
-> 🛡️ 7 hardcoded deterministic risk guardrails
+> Built by solo team **Returnee**, AegisAlpha is an autonomous multi-agent quantitative options desk:
+> 🧠 @FeatherlessAI Qwen-2.5-72B for market regime & volatility discovery
+> 📊 Real-time Alpaca Options chains & Greeks (Delta / Gamma / Vega / IV)
+> 🛡️ 7 zero-LLM deterministic mathematical risk guardrails (Max 2% equity risk per trade)
+> 🔌 Alpaca FastMCP server tools
 > 
-> No naked risk. No hallucinated execution. Just disciplined quant alpha. 📈
+> 🌐 Live App: https://aegis-alpha-desk.vercel.app
+> 💻 GitHub: https://github.com/DeathKnell837/band-of-agents-hackathon
 > 
-> #AlpacaHackathon #AITrading #QuantFinance #AlpacaMarkets #LablabAI
+> #AlpacaHackathon #AITrading #QuantFinance #AlpacaMarkets #LablabAI #BuildInPublic
 
 ---
 
-### 🔍 Post 2: The Multi-Agent Architecture
+### 🔍 Post 2: Multi-Agent Architecture & Risk Engine
 > Building in public update for @lablabai × @AlpacaHQ Hackathon 🛠️
 > 
-> Why most AI trading agents fail: Giving LLMs raw execution authority.
+> Why most AI trading agents fail: Giving LLMs unhedged execution authority.
 > 
-> In **AegisOptions**, the AI proposes hypotheses, but a zero-LLM **Deterministic Risk Gate** validates:
-> 1️⃣ Defined-risk spreads only
-> 2️⃣ Max 2% loss per trade
+> In **AegisAlpha**, the 72B AI proposes hypotheses, but a zero-LLM **Deterministic Risk Engine** validates:
+> 1️⃣ Defined-risk spreads only (Bull Call / Bear Put / Iron Condor)
+> 2️⃣ Max 2% loss per trade ($2,000 max)
 > 3️⃣ 20% portfolio options cap
-> 4️⃣ Slippage & bid-ask liquidity gates
+> 4️⃣ Slippage & bid-ask liquidity gates (<15%)
+> 5️⃣ -3% Daily Drawdown Circuit Breaker
 > 
 > Code is the ultimate risk manager. 🔒
+> 
+> Live demo: https://aegis-alpha-desk.vercel.app
 > 
 > #AlgorithmicTrading #OptionsTrading #Python #FastMCP #BuildInPublic
 

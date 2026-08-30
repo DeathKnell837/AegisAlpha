@@ -1,0 +1,4 @@
+LEXAUDIT CUSTOM REFERENCE RULES
+1. The governing law of the contract MUST be California, USA.
+2. The agreement term or duration MUST NOT exceed 1 year.
+3. The definition of Confidential Information must explicitly include personal data.

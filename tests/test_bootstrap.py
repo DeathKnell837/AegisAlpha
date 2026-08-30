@@ -1,92 +1,76 @@
-# tests/test_bootstrap.py
+# tests/test_bootstrap.py -> test_risk_engine
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from src.agent_factory import InterceptLangGraphAdapter
+from src.risk_engine import DeterministicRiskEngine, TradeProposal
 
-class MockMsg:
-    def __init__(self, id_val, sender_id, content=""):
-        self.id = id_val
-        self.sender_id = sender_id
-        self.sender_name = "test_user"
-        self.content = content
+def test_risk_engine_daily_drawdown_breaker():
+    """Verify that daily loss exceeding 3% halts trading."""
+    engine = DeterministicRiskEngine()
+    proposal = TradeProposal(
+        symbol="SPY",
+        strategy="BULL_CALL_SPREAD",
+        long_contract={"spread_pct": 0.02},
+        short_contract={"spread_pct": 0.02},
+        contracts_qty=1,
+        max_risk_usd=300.0,
+        max_reward_usd=500.0
+    )
+    # Account with -3.5% daily drawdown
+    account = {"equity": 100000.0, "buying_power": 400000.0, "day_pnl_pct": -3.5}
+    res = engine.evaluate_trade(proposal, account, [])
+    assert not res.passed
+    assert "Daily drawdown circuit breaker" in res.violations[0]
 
-class MockTools:
-    def __init__(self, room_data):
-        self.room_data = room_data
-        self.fetch_calls = 0
-        self.send_event = AsyncMock()
-        self.send_message = AsyncMock()
-        self.participants = []
+def test_risk_engine_bid_ask_spread_gate():
+    """Verify that illiquid options with wide bid-ask spread (>15%) are vetoed."""
+    engine = DeterministicRiskEngine()
+    proposal = TradeProposal(
+        symbol="NVDA",
+        strategy="BULL_CALL_SPREAD",
+        long_contract={"spread_pct": 0.22},  # 22% spread > 15% limit
+        short_contract={"spread_pct": 0.03},
+        contracts_qty=1,
+        max_risk_usd=400.0,
+        max_reward_usd=600.0
+    )
+    account = {"equity": 100000.0, "buying_power": 400000.0, "day_pnl_pct": 0.0}
+    res = engine.evaluate_trade(proposal, account, [])
+    assert not res.passed
+    assert any("bid-ask spread too wide" in v for v in res.violations)
 
-    async def fetch_room_context(self, room_id):
-        self.fetch_calls += 1
-        return {"data": self.room_data}
+def test_risk_engine_portfolio_allocation_cap():
+    """Verify that options exposure exceeding 20% of equity is vetoed."""
+    engine = DeterministicRiskEngine()
+    proposal = TradeProposal(
+        symbol="TSLA",
+        strategy="BULL_CALL_SPREAD",
+        long_contract={"spread_pct": 0.03},
+        short_contract={"spread_pct": 0.03},
+        contracts_qty=5,
+        max_risk_usd=5000.0,
+        max_reward_usd=8000.0
+    )
+    # Already holding $18,000 in options on $100k account (20k max allowed)
+    open_positions = [{"symbol": "SPY260908C00773000", "market_value": 18000.0}]
+    account = {"equity": 100000.0, "buying_power": 400000.0, "day_pnl_pct": 0.0}
+    res = engine.evaluate_trade(proposal, account, open_positions)
+    assert not res.passed
+    assert any("Portfolio options exposure would exceed" in v for v in res.violations)
 
-@pytest.mark.asyncio
-async def test_bootstrap_caching_and_skipping():
-    # Setup test data
-    # planner agent ID is loaded from config during credentials fetch
-    from src.config import get_config
-    cfg = get_config()
-    planner_id, _, _ = cfg.get_agent_credentials("planner_agent")
-
-    room_id = "test_room_123"
-    
-    # Context has two messages: U1 (user) followed by P1 (planner response)
-    room_data = [
-        {"id": "msg_u1", "sender_id": "user_id_123", "sender_name": "User", "content": "hello"},
-        {"id": "msg_p1", "sender_id": planner_id, "sender_name": "Planner", "content": "plan"}
-    ]
-    
-    tools = MockTools(room_data)
-    adapter = InterceptLangGraphAdapter(role="planner", llm=MagicMock())
-    
-    with patch("src.agent_factory.InterceptLangGraphAdapter._run_graph", new_callable=AsyncMock) as mock_run_graph:
-        # 1. Processing an old message (msg_u1) during bootstrap
-        msg_u1 = MockMsg("msg_u1", "user_id_123")
-        await adapter.on_message(
-            msg=msg_u1,
-            tools=tools,
-            history=[],
-            participants_msg=None,
-            contacts_msg=None,
-            is_session_bootstrap=True,
-            room_id=room_id
-        )
-        
-        # It should have skipped/returned before calling _run_graph
-        mock_run_graph.assert_not_called()
-        assert tools.fetch_calls == 1  # Called fetch_room_context once
-        
-        # 2. Processing the latest message (msg_p1) which was sent by us (planner) during bootstrap
-        msg_p1 = MockMsg("msg_p1", planner_id)
-        await adapter.on_message(
-            msg=msg_p1,
-            tools=tools,
-            history=[],
-            participants_msg=None,
-            contacts_msg=None,
-            is_session_bootstrap=True,
-            room_id=room_id
-        )
-        
-        # It should have skipped again because it was sent by us
-        mock_run_graph.assert_not_called()
-        assert tools.fetch_calls == 1  # Cached: did not call fetch_room_context again
-        
-        # 3. Processing a non-bootstrap new message (from another user)
-        msg_u2 = MockMsg("msg_u2", "user_id_123", content="new message")
-        await adapter.on_message(
-            msg=msg_u2,
-            tools=tools,
-            history=[],
-            participants_msg=None,
-            contacts_msg=None,
-            is_session_bootstrap=False,
-            room_id=room_id
-        )
-        
-        # It should NOT skip this, it should process it and call _run_graph
-        mock_run_graph.assert_called_once()
-        # The cache should be cleared on is_session_bootstrap=False
-        assert not hasattr(adapter, "_bootstrap_contexts") or room_id not in adapter._bootstrap_contexts
+def test_risk_engine_approved_defined_risk_trade():
+    """Verify that a compliant defined-risk spread is approved with correct sizing."""
+    engine = DeterministicRiskEngine()
+    proposal = TradeProposal(
+        symbol="SPY",
+        strategy="BULL_CALL_SPREAD",
+        long_contract={"spread_pct": 0.02},
+        short_contract={"spread_pct": 0.02},
+        contracts_qty=2,
+        max_risk_usd=600.0,
+        max_reward_usd=1000.0
+    )
+    account = {"equity": 100000.0, "buying_power": 400000.0, "day_pnl_pct": 0.2}
+    res = engine.evaluate_trade(proposal, account, [])
+    assert res.passed
+    assert res.approved_qty == 2
+    assert res.adjusted_max_risk_usd == 600.0
+    assert "Risk Gate Approved" in res.risk_summary

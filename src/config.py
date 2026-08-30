@@ -1,77 +1,61 @@
 # src/config.py
 import os
-import re
-import yaml
 from pathlib import Path
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 # Base paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = ROOT_DIR / ".env"
-CONFIG_PATH = ROOT_DIR / "agent_config.yaml"
 
-# Load .env
 if ENV_PATH.exists():
     load_dotenv(str(ENV_PATH))
 
-def _expand_env(value):
-    if isinstance(value, str):
-        # Match both ${VAR} and $VAR
-        return re.sub(r"\$\{(\w+)\}|\$(\w+)", lambda m: os.getenv(m.group(1) or m.group(2), ""), value)
-    if isinstance(value, dict):
-        return {k: _expand_env(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_expand_env(v) for v in value]
-    return value
 
-class Config:
+class RiskSettings(BaseModel):
+    """Deterministic risk management boundaries."""
+    max_risk_per_trade_pct: float = Field(default=0.02, description="Max 2% of portfolio equity at risk per trade")
+    max_portfolio_options_pct: float = Field(default=0.20, description="Max 20% of equity allocated to options")
+    max_position_size_usd: float = Field(default=2500.0, description="Max dollar loss risk per single position")
+    max_slippage_bid_ask_pct: float = Field(default=0.15, description="Max bid-ask spread relative to mid-price (15%)")
+    min_dte: int = Field(default=5, description="Minimum days to expiration to avoid extreme gamma pin risk")
+    max_dte: int = Field(default=45, description="Maximum days to expiration for short-to-medium duration alpha")
+    profit_target_pct: float = Field(default=0.50, description="Take profit at +50% of max spread profit / premium")
+    stop_loss_pct: float = Field(default=0.40, description="Cut loss at -40% of premium paid")
+    max_daily_drawdown_pct: float = Field(default=0.03, description="Halt new trades if daily portfolio drawdown exceeds 3%")
+
+
+class AppConfig:
     def __init__(self):
-        # Platform settings
-        self.rest_url = os.getenv("THENVOI_REST_URL", "https://app.band.ai/")
-        self.ws_url = os.getenv("THENVOI_WS_URL", "wss://app.band.ai/api/v1/socket/websocket")
-        
-        # LLM Keys
-        self.featherless_api_key = os.getenv("FEATHERLESS_API_KEY")
-        self.aimlapi_key = os.getenv("AIMLAPI_KEY")
-        
+        # Alpaca Credentials
+        self.alpaca_api_key = os.getenv("ALPACA_API_KEY", "")
+        self.alpaca_secret_key = os.getenv("ALPACA_SECRET_KEY", "")
+        self.alpaca_base_url = os.getenv("ALPACA_API_BASE_URL", "https://paper-api.alpaca.markets")
+        self.alpaca_account_id = os.getenv("ALPACA_ACCOUNT_ID", "PA3PL5AZ85K6")
+        self.is_paper = "paper" in self.alpaca_base_url.lower()
+
+        # Featherless AI Credentials
+        self.featherless_api_key = os.getenv("FEATHERLESS_API_KEY", "")
+        self.featherless_base_url = "https://api.featherless.ai/v1"
+        self.default_model = os.getenv("FEATHERLESS_MODEL", "Qwen/Qwen2.5-72B-Instruct")
+        self.fallback_model = "Qwen/Qwen2.5-32B-Instruct"
+
+        # Trading Watchlist
+        self.default_watchlist = ["SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "AMD"]
+
+        # Risk parameters
+        self.risk = RiskSettings()
+
+    def validate(self):
+        if not self.alpaca_api_key or not self.alpaca_secret_key:
+            raise ValueError("Alpaca API credentials missing in .env")
         if not self.featherless_api_key:
-            raise ValueError("FEATHERLESS_API_KEY is missing from the environment!")
-        if not self.aimlapi_key:
-            raise ValueError("AIMLAPI_KEY is missing from the environment! (required for Reviewer agent)")
-            
-        # Agent Configurations
-        if not CONFIG_PATH.exists():
-            raise FileNotFoundError(f"agent_config.yaml not found at {CONFIG_PATH}")
-            
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            raw_yaml = yaml.safe_load(f) or {}
-            self.agent_yaml = _expand_env(raw_yaml)
+            raise ValueError("Featherless API Key missing in .env")
+        return True
 
-    def get_agent_credentials(self, role_key: str):
-        """Returns (agent_id, api_key, handle) for a given agent role key."""
-        config = self.agent_yaml.get(role_key)
-        if not config:
-            raise KeyError(f"Role key '{role_key}' not found in agent_config.yaml")
-        
-        agent_id = config.get("agent_id")
-        api_key = config.get("api_key")
-        handle = config.get("handle")
-        
-        if not agent_id or not api_key or not handle:
-            raise ValueError(f"Incomplete credentials for '{role_key}' in agent_config.yaml")
-            
-        return agent_id, api_key, handle
 
-# Singleton config instance
-try:
-    config = Config()
-except Exception as e:
-    # We catch errors during compile so tests can mock environments if needed
-    config = None
-    _config_error = e
+config = AppConfig()
 
-def get_config():
-    if config is None:
-        raise _config_error
+def get_config() -> AppConfig:
     return config
 

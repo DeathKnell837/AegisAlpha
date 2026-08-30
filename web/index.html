@@ -3,281 +3,399 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LexAudit — Legal Contract Compliance Auditor</title>
-  <meta name="description" content="AI-powered multi-agent legal contract compliance auditor. Instantly audit NDAs, MSAs, and more against GDPR, HIPAA, SOC 2, and other frameworks.">
+  <title>AegisAlpha | Autonomous AI Options Desk</title>
   <link rel="stylesheet" href="index.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="lexaudit">
+<body>
 
-  <!-- TOP BAR -->
-  <header id="topbar">
-    <div class="brand"><i data-lucide="scale"></i> <span>LexAudit</span></div>
-    <div id="contract-meta">
-      <span id="contract-name">—</span>
-      <span id="contract-type" class="pill">—</span>
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="logo-mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#lg)" stroke-width="1.8" fill="none"/>
+          <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#lg)" opacity="0.2"/>
+          <path d="M14 10L18 12.5V17L14 19.5L10 17V12.5L14 10Z" fill="url(#lg)" opacity="0.55"/>
+          <defs><linearGradient id="lg" x1="2" y1="2" x2="26" y2="26"><stop stop-color="#00D4AA"/><stop offset="1" stop-color="#00B4D8"/></linearGradient></defs>
+        </svg>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="dashboard" data-tooltip="Dashboard"><i data-lucide="layout-dashboard"></i></button>
+        <button class="nav-btn" data-tab="trade" data-tooltip="Manual Trade"><i data-lucide="arrow-left-right"></i></button>
+        <button class="nav-btn" data-tab="positions" data-tooltip="Positions"><i data-lucide="briefcase"></i></button>
+        <button class="nav-btn" data-tab="agents" data-tooltip="AI Agents"><i data-lucide="cpu"></i></button>
+        <button class="nav-btn" data-tab="risk" data-tooltip="Risk Gates"><i data-lucide="shield-check"></i></button>
+      </nav>
     </div>
-    <div id="audit-progress"><div id="document-progress-bar" style="width: 0%"></div></div>
-    <div class="topbar-actions">
-      <div id="agent-status-indicator" class="agent-status agent-status--checking">
-        <span class="agent-status-dot"></span>
-        <span class="agent-status-label">Checking...</span>
-      </div>
-      <button id="btn-export-report" class="topbar-btn" title="Export audit report" disabled><i data-lucide="download"></i> Export</button>
-      <button id="btn-new-audit" class="topbar-btn topbar-btn--primary" title="Start a new audit"><i data-lucide="refresh-cw"></i> New Audit</button>
-      <button id="btn-settings" class="topbar-btn" title="Settings"><i data-lucide="settings"></i> Settings</button>
-      <div id="overall-status" class="pill status-pending">PENDING SCAN</div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-avatar"><span>A</span></div>
     </div>
-  </header>
+  </aside>
 
-  <main id="grid">
-    <!-- COLUMN 1: AGENT ORCHESTRA -->
-    <aside id="col-agents">
-      <h2 class="col-title">AGENT ORCHESTRA</h2>
-      <div id="agent-flow">
-        <div class="agent-node" id="agent-planner" data-agent="planner" data-state="idle">
-          <span class="node-ring"></span>
-          <div class="node-avatar">P</div>
-          <div class="node-info">
-            <span class="node-name">Planner</span>
-            <span class="node-state-label">Idle</span>
-            <span class="node-model">Qwen-2.5-32B</span>
-          </div>
-        </div>
-        
-        <div class="connector-container">
-          <div class="connector-line"></div>
-          <div id="connector-packet" class="packet"></div>
-        </div>
+  <!-- MAIN SHELL -->
+  <div class="shell">
 
-        <div class="agent-node" id="agent-executor" data-agent="executor" data-state="idle">
-          <span class="node-ring"></span>
-          <div class="node-avatar">E</div>
-          <div class="node-info">
-            <span class="node-name">Executor</span>
-            <span class="node-state-label">Idle</span>
-            <span class="node-model">Qwen-2.5-32B</span>
-          </div>
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-brand">
+          <span class="brand-name">Aegis<span class="brand-hi">Alpha</span></span>
+          <span class="brand-pipe"></span>
+          <span class="brand-tag">OPTIONS DESK</span>
         </div>
-
-        <div class="connector-container">
-          <div class="connector-line"></div>
-        </div>
-
-        <div class="agent-node" id="agent-reviewer" data-agent="reviewer" data-state="idle">
-          <span class="node-ring"></span>
-          <div class="node-avatar">R</div>
-          <div class="node-info">
-            <span class="node-name">Reviewer</span>
-            <span class="node-state-label">Idle</span>
-            <span class="node-model">Qwen-2.5-32B</span>
-          </div>
+        <div class="topbar-chip">
+          <span class="chip-dot"></span>
+          <span class="chip-label">Paper</span>
+          <span class="chip-id">PA3PL5AZ85K6</span>
+          <span class="chip-tier">Lvl 3</span>
         </div>
       </div>
-
-      <!-- AUDIT HISTORY -->
-      <div id="audit-history-section">
-        <div class="history-header">
-          <h2 class="col-title" style="margin: 0;">AUDIT HISTORY</h2>
-          <button id="btn-clear-history" class="history-clear-btn" title="Clear all audit history"><i data-lucide="trash-2"></i> Clear</button>
-        </div>
-        <div id="audit-history-list">
-          <p class="history-empty">No previous audits this session.</p>
-        </div>
+      <div class="topbar-metrics">
+        <div class="tm"><span class="tm-l">Equity</span><span class="tm-v" id="hud-equity">$100,000.00</span></div>
+        <div class="tm-sep"></div>
+        <div class="tm"><span class="tm-l">Buying Power</span><span class="tm-v hi" id="hud-bp">$397,423.96</span></div>
+        <div class="tm-sep"></div>
+        <div class="tm"><span class="tm-l">Day P&amp;L</span><span class="tm-v pos" id="hud-pnl">+$0.00 (0.00%)</span></div>
       </div>
-    </aside>
+      <div class="topbar-actions">
+        <button id="btn-help" class="btn-help" title="How to use this dashboard"><i data-lucide="help-circle"></i></button>
+        <button id="btn-run-scan" class="btn-scan"><i data-lucide="zap"></i><span>AI Scan</span></button>
+        <button id="btn-kill-switch" class="btn-kill" title="Emergency Liquidation"><i data-lucide="octagon-x"></i></button>
+      </div>
+    </header>
 
-    <!-- COLUMN 2: CONTRACT WORKSPACE -->
-    <section id="col-workspace">
+    <!-- CONTENT ZONE -->
+    <div class="content-zone">
 
-      <!-- UPLOAD PANEL -->
-      <div id="upload-panel">
-        <!-- Framework selector -->
-        <div id="framework-selector">
-          <span class="framework-label">Frameworks:</span>
-          <div id="framework-chips">
-            <button class="framework-chip active" data-fw="GDPR">GDPR</button>
-            <button class="framework-chip active" data-fw="CCPA">CCPA/CPRA</button>
-            <button class="framework-chip active" data-fw="HIPAA">HIPAA</button>
-            <button class="framework-chip active" data-fw="SOC2">SOC 2</button>
-            <button class="framework-chip active" data-fw="SOX">SOX</button>
-            <button class="framework-chip active" data-fw="AML">AML/KYC</button>
-          </div>
-        </div>
+      <!-- MAIN AREA -->
+      <main class="main-area">
 
-        <!-- Reference Rules Upload (Optional) -->
-        <div id="reference-rules-container" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-strong); border-radius: 10px; box-sizing: border-box; width: 100%;">
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Compliance Guidelines (Optional)</span>
-            <span id="ref-status-label" style="font-size: 11px; color: var(--text-muted);">Audit contract against custom rules (PDF, DOCX, TXT)</span>
+        <!-- WATCHLIST -->
+        <section class="watchlist" id="watchlist-container">
+          <div class="wcard active" data-symbol="SPY">
+            <div class="wc-r1"><span class="wc-s">SPY</span><span class="wc-ch up">+0.82%</span></div>
+            <span class="wc-p">$769.28</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,15 10,12 20,14 30,8 40,10 50,5 60,7" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <label id="btn-choose-ref" class="upload-btn" for="ref-file-input" style="padding: 6px 12px; font-size: 11px; margin: 0; cursor: pointer;">Choose Rules</label>
-            <input type="file" id="ref-file-input" accept=".pdf,.docx,.txt" style="display:none" />
-            <button id="btn-clear-ref" class="upload-btn upload-btn--ghost" style="padding: 6px 12px; font-size: 11px; margin: 0; display: none;">Clear</button>
+          <div class="wcard" data-symbol="QQQ">
+            <div class="wc-r1"><span class="wc-s">QQQ</span><span class="wc-ch up">+1.14%</span></div>
+            <span class="wc-p">$520.14</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,16 10,14 20,12 30,10 40,6 50,8 60,4" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
           </div>
-        </div>
+          <div class="wcard" data-symbol="NVDA">
+            <div class="wc-r1"><span class="wc-s">NVDA</span><span class="wc-ch up">+2.45%</span></div>
+            <span class="wc-p">$132.80</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,18 10,14 20,16 30,10 40,8 50,4 60,3" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="AAPL">
+            <div class="wc-r1"><span class="wc-s">AAPL</span><span class="wc-ch dn">-0.35%</span></div>
+            <span class="wc-p">$232.10</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,6 10,8 20,7 30,12 40,14 50,13 60,16" fill="none" stroke="#F6465D" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="TSLA">
+            <div class="wc-r1"><span class="wc-s">TSLA</span><span class="wc-ch up">+1.90%</span></div>
+            <span class="wc-p">$214.50</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,17 10,14 20,16 30,9 40,12 50,6 60,5" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+          <div class="wcard" data-symbol="MSFT">
+            <div class="wc-r1"><span class="wc-s">MSFT</span><span class="wc-ch up">+0.64%</span></div>
+            <span class="wc-p">$448.20</span>
+            <svg class="wc-sv" viewBox="0 0 60 20"><polyline points="0,14 10,12 20,13 30,10 40,11 50,8 60,9" fill="none" stroke="#00D4AA" stroke-width="1.5"/></svg>
+          </div>
+        </section>
 
-        <div id="upload-zone" class="upload-zone" role="button" tabindex="0" aria-label="Upload contract file">
-          <div id="upload-idle" class="upload-state">
-            <div class="upload-icon"><i data-lucide="file-text"></i></div>
-            <p class="upload-title">Drop your contract here</p>
-            <p class="upload-sub">Supports PDF, DOCX, and TXT · Max recommended 15,000 characters</p>
-            <label class="upload-btn" for="file-input">Choose File</label>
-            <input type="file" id="file-input" accept=".pdf,.docx,.txt" hidden />
-          </div>
-          <div id="upload-loading" class="upload-state" style="display:none">
-            <div class="upload-spinner"></div>
-            <p class="upload-title">Extracting contract text...</p>
-          </div>
-          <div id="upload-ready" class="upload-state" style="display:none">
-            <div class="upload-icon"><i data-lucide="check-circle-2"></i></div>
-            <p class="upload-title" id="upload-filename">contract.pdf</p>
-            <p class="upload-sub" id="upload-charcount">0 characters extracted</p>
-            <div id="upload-size-warning" class="upload-warning" style="display:none">
-              <i data-lucide="alert-triangle"></i> Large file — only first 15,000 characters will be sent to agents
-            </div>
-            <div class="upload-actions">
-              <button class="upload-btn upload-btn--primary" id="btn-start-audit"><i data-lucide="scale"></i> Start Audit</button>
-              <button class="upload-btn upload-btn--ghost" id="btn-clear-upload">Clear</button>
+        <!-- REAL-TIME PORTFOLIO EARNINGS -->
+        <section class="earnings-strip">
+          <div class="earn-card main-earn">
+            <div class="earn-icon-box"><i data-lucide="wallet"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Total Portfolio Value</span>
+              <span class="earn-big" id="earn-equity">$100,000.00</span>
             </div>
           </div>
-          <div id="upload-sending" class="upload-state" style="display:none">
-            <div class="upload-spinner upload-spinner--planner"></div>
-            <p class="upload-title">Sending to agents...</p>
-            <p class="upload-sub">Planner agent is waking up</p>
-            <div class="progress-notice-card" style="margin-top: 15px; padding: 10px; border-radius: 8px; background: rgba(50, 140, 255, 0.08); border: 1px solid rgba(50, 140, 255, 0.25); text-align: center; max-width: 400px; box-sizing: border-box; width: 100%;">
-              <p style="font-size: 12px; font-weight: 700; color: #328cff; margin: 0 0 4px 0;"><i data-lucide="info" style="display:inline-block; width:14px; height:14px; vertical-align:middle; margin-right:4px;"></i> Multi-Agent Collaboration Active</p>
-              <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">Planner, Executor, and Reviewer are working sequentially. Please wait, this may take <strong>2–3 minutes</strong>.</p>
+          <div class="earn-card">
+            <div class="earn-icon-box green"><i data-lucide="trending-up"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Today's Earnings</span>
+              <span class="earn-big pos" id="earn-day">+$0.00</span>
+              <span class="earn-pct pos" id="earn-day-pct">0.00%</span>
             </div>
           </div>
-          <div id="upload-sent" class="upload-state" style="display:none">
-            <div class="upload-icon"><i data-lucide="rocket"></i></div>
-            <p class="upload-title">Audit in progress!</p>
-            <p class="upload-sub">Watch the dashboard update live below</p>
-            <div class="progress-notice-card" style="margin-top: 15px; padding: 10px; border-radius: 8px; background: rgba(50, 140, 255, 0.08); border: 1px solid rgba(50, 140, 255, 0.25); text-align: center; max-width: 400px; box-sizing: border-box; width: 100%; margin-left: auto; margin-right: auto;">
-              <p style="font-size: 12px; font-weight: 700; color: #328cff; margin: 0 0 4px 0;"><i data-lucide="info" style="display:inline-block; width:14px; height:14px; vertical-align:middle; margin-right:4px;"></i> Audit in Progress</p>
-              <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">Reviewing clauses, generating counter-arguments, and estimating risks. Estimated time remaining: <strong>1–2 minutes</strong>.</p>
+          <div class="earn-card">
+            <div class="earn-icon-box purple"><i data-lucide="bar-chart-3"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Unrealized P&amp;L</span>
+              <span class="earn-big" id="earn-unreal">$0.00</span>
+              <span class="earn-pct" id="earn-positions">0 positions</span>
             </div>
-            <button class="upload-btn upload-btn--ghost" id="btn-audit-another" style="margin-top:15px">Upload Another Contract</button>
+          </div>
+          <div class="earn-card">
+            <div class="earn-icon-box amber"><i data-lucide="clock"></i></div>
+            <div class="earn-body">
+              <span class="earn-label">Last Updated</span>
+              <span class="earn-big" id="earn-time" style="font-size:1rem">--:--:--</span>
+              <span class="earn-pct">Auto-refreshes every 10s</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- HERO CHART -->
+        <section class="card card-chart">
+          <div class="card-hd">
+            <div><h2 class="card-t">Options Payoff Curve</h2><span class="card-st">Defined-risk P&L across strike horizons</span></div>
+            <div class="stag" id="current-strategy-badge"><span class="stag-d"></span>Bull Call Spread</div>
+          </div>
+          <div class="chart-box"><canvas id="payoffChart"></canvas></div>
+        </section>
+
+        <!-- GREEKS -->
+        <section class="greeks-row">
+          <div class="gcard"><span class="gc-l">Delta</span><span class="gc-v pos" id="val-delta">+0.40</span><span class="gc-d">Directional Bias</span></div>
+          <div class="gcard"><span class="gc-l">Gamma</span><span class="gc-v hi" id="val-gamma">+0.034</span><span class="gc-d">Convexity Speed</span></div>
+          <div class="gcard"><span class="gc-l">Theta</span><span class="gc-v neg" id="val-theta">-0.27</span><span class="gc-d">Time Decay/Day</span></div>
+          <div class="gcard"><span class="gc-l">Vega</span><span class="gc-v pur" id="val-vega">+0.46</span><span class="gc-d">IV Sensitivity</span></div>
+          <div class="gcard"><span class="gc-l">Implied Vol</span><span class="gc-v hi" id="iv-val">9.34%</span><div class="gc-bar"><div class="gc-fill" style="width:42%"></div></div></div>
+        </section>
+
+        <!-- MANUAL TRADE PANEL -->
+        <section class="card trade-panel" id="trade-panel">
+          <div class="card-hd">
+            <div>
+              <h2 class="card-t">Manual Trade</h2>
+              <span class="card-st">Search options chains and place orders manually</span>
+            </div>
+          </div>
+          <div class="trade-form">
+            <div class="tf-row">
+              <div class="tf-group">
+                <label class="tf-label">Symbol</label>
+                <input type="text" id="trade-symbol" class="tf-input" placeholder="SPY" value="SPY">
+              </div>
+              <button id="btn-load-chain" class="btn-chain"><i data-lucide="search"></i><span>Load Chain</span></button>
+            </div>
+            <div id="chain-status" class="chain-status"></div>
+            <div id="chain-results" class="chain-results"></div>
+            <div class="tf-order" id="order-form" style="display:none">
+              <div class="tf-row">
+                <div class="tf-group">
+                  <label class="tf-label">Contract</label>
+                  <input type="text" id="order-contract" class="tf-input" readonly>
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Qty</label>
+                  <input type="number" id="order-qty" class="tf-input" value="1" min="1" max="10">
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Side</label>
+                  <select id="order-side" class="tf-input">
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                  </select>
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Type</label>
+                  <select id="order-type" class="tf-input">
+                    <option value="limit">Limit</option>
+                    <option value="market">Market</option>
+                  </select>
+                </div>
+                <div class="tf-group sm">
+                  <label class="tf-label">Limit $</label>
+                  <input type="number" id="order-limit" class="tf-input" step="0.01" placeholder="0.00">
+                </div>
+              </div>
+              <button id="btn-place-order" class="btn-order"><i data-lucide="send"></i><span>Place Order</span></button>
+              <div id="order-status" class="order-status"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HOLDINGS & ORDERS TABLE -->
+        <section class="card card-pos">
+          <div class="card-hd">
+            <div style="display:flex;align-items:center;gap:12px">
+              <button id="tab-btn-pos" class="tab-pill active" onclick="switchHoldingTab('pos')">Active Positions <span id="badge-pos-count" class="tab-badge">0</span></button>
+              <button id="tab-btn-ord" class="tab-pill" onclick="switchHoldingTab('ord')">Live Orders <span id="badge-ord-count" class="tab-badge">0</span></button>
+            </div>
+            <button id="btn-refresh-positions" class="btn-ghost" title="Refresh"><i data-lucide="rotate-cw"></i></button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="tbl-positions">
+              <thead><tr><th>Position</th><th>Type</th><th>Qty</th><th>Avg Price</th><th>Mark</th><th>Mkt Value</th><th>P&amp;L</th><th></th></tr></thead>
+              <tbody id="positions-tbody">
+                <tr><td colspan="8" class="empty-cell"><div class="empty-box"><i data-lucide="inbox"></i><span>No active positions. Run AI Scan or place a manual order.</span></div></td></tr>
+              </tbody>
+            </table>
+            <table class="tbl" id="tbl-orders" style="display:none">
+              <thead><tr><th>Order ID</th><th>Contract / Symbol</th><th>Side</th><th>Qty</th><th>Type</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+              <tbody id="orders-tbody">
+                <tr><td colspan="8" class="empty-cell"><div class="empty-box"><i data-lucide="inbox"></i><span>No recent orders.</span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- RIGHT PANEL -->
+      <aside class="right-panel">
+
+        <div class="card card-agents">
+          <div class="card-hd"><div><h2 class="card-t">Agent Pipeline</h2><span class="card-st">Multi-Agent Intelligence</span></div></div>
+          <div class="agent-flow">
+            <div class="ag-node"><div class="ag-ic teal"><i data-lucide="activity"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Market Scanner</span><span class="ag-bg teal">ONLINE</span></div><span class="ag-dt">IEX Bars &amp; 30-Day Realized Vol</span></div></div>
+            <div class="ag-line"></div>
+            <div class="ag-node"><div class="ag-ic amber"><i data-lucide="brain-circuit"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Alpha Strategist</span><span class="ag-bg amber">Qwen-2.5-72B</span></div><span class="ag-dt">Volatility Regime &amp; Convexity</span></div></div>
+            <div class="ag-line"></div>
+            <div class="ag-node"><div class="ag-ic purple"><i data-lucide="binary"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Greeks Engine</span><span class="ag-bg purple">Indicative</span></div><span class="ag-dt">0.40/0.20 Delta Structuring</span></div></div>
+            <div class="ag-line"></div>
+            <div class="ag-node"><div class="ag-ic green"><i data-lucide="shield-check"></i></div><div class="ag-bd"><div class="ag-r"><span class="ag-nm">Risk Gatekeeper</span><span class="ag-bg green">ZERO-LLM</span></div><span class="ag-dt">7 Deterministic Constraints</span></div></div>
           </div>
         </div>
-      </div>
 
-      <div id="document-viewer" class="contract-viewer">
-        <h2>Contract Document</h2>
-        <div id="document-lines"></div>
-      </div>
-      <div id="collab-stream" class="message-log">
-        <h2>Collaboration Stream</h2>
-        <div id="message-log"></div>
-      </div>
-    </section>
-
-    <!-- COLUMN 3: RISK & FINDINGS -->
-    <aside id="col-risk">
-      <div id="risk-gauge-container">
-        <h2>Compliance Risk Score</h2>
-        <div id="risk-gauge">
-          <svg viewBox="0 0 120 120" class="gauge-svg">
-            <circle class="gauge-track" cx="60" cy="60" r="52"></circle>
-            <circle id="risk-gauge-fill" class="gauge-fill" cx="60" cy="60" r="52" style="stroke-dasharray: 326.7; stroke-dashoffset: 326.7;"></circle>
-          </svg>
-          <div class="gauge-value"><span id="risk-gauge-label">0</span><small>RISK</small></div>
-        </div>
-        <!-- Severity breakdown bar -->
-        <div id="severity-breakdown">
-          <div class="sev-bar-row"><span class="sev-label">CRITICAL</span><div class="sev-bar-track"><div class="sev-bar sev-bar--crit" id="sev-crit" style="width:0%"></div></div><span class="sev-count" id="sev-crit-count">0</span></div>
-          <div class="sev-bar-row"><span class="sev-label">HIGH</span><div class="sev-bar-track"><div class="sev-bar sev-bar--high" id="sev-high" style="width:0%"></div></div><span class="sev-count" id="sev-high-count">0</span></div>
-          <div class="sev-bar-row"><span class="sev-label">MEDIUM</span><div class="sev-bar-track"><div class="sev-bar sev-bar--med" id="sev-med" style="width:0%"></div></div><span class="sev-count" id="sev-med-count">0</span></div>
-          <div class="sev-bar-row"><span class="sev-label">LOW</span><div class="sev-bar-track"><div class="sev-bar sev-bar--low" id="sev-low" style="width:0%"></div></div><span class="sev-count" id="sev-low-count">0</span></div>
-          <div class="sev-bar-row"><span class="sev-label">PASS</span><div class="sev-bar-track"><div class="sev-bar sev-bar--safe" id="sev-pass" style="width:0%"></div></div><span class="sev-count" id="sev-pass-count">0</span></div>
-        </div>
-        <div id="total-exposure" class="total-exposure" style="display:none"></div>
-      </div>
-
-      <div id="findings-feed">
-        <div class="findings-header">
-          <h2>Audit Findings</h2>
-          <div id="findings-filter">
-            <button class="filter-chip active" data-filter="ALL">All</button>
-            <button class="filter-chip" data-filter="CRITICAL">Critical</button>
-            <button class="filter-chip" data-filter="HIGH">High</button>
-            <button class="filter-chip" data-filter="MEDIUM">Medium</button>
+        <div class="card card-feed">
+          <div class="card-hd"><div><h2 class="card-t">Decision Feed</h2><span class="card-st">Live risk audit verdicts</span></div></div>
+          <div id="decision-feed" class="feed-scroll">
+            <div class="feed-empty"><i data-lucide="radio"></i><span>Standing by. Launch a scan to see decisions.</span></div>
           </div>
         </div>
-        <ul id="findings-container" class="findings-list"></ul>
-      </div>
 
-      <div id="checklist">
-        <h2>Compliance Checklist</h2>
-        <ul id="checklist-container"></ul>
-      </div>
-    </aside>
-  </main>
+        <div class="card card-guard">
+          <div class="guard-hd"><i data-lucide="lock"></i><span>7 Hardcoded Guardrails</span></div>
+          <div class="guard-list">
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Defined-Risk Spreads Only</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Max 2% Risk per Position</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Max 20% Options Exposure</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Bid-Ask Slippage &lt;15%</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Duration Window 5-45 DTE</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>-3% Daily Drawdown Breaker</span></div>
+            <div class="gr"><i data-lucide="check-circle-2"></i><span>Dynamic Unit Risk Sizing</span></div>
+          </div>
+        </div>
 
-  <!-- STATUS BAR -->
-  <footer id="statusbar">
-    <span id="connection-status" class="dot dot--off"></span>
-    <span id="socket-label">Offline</span>
-    <span class="statusbar-sep">·</span>
-    <span id="statusbar-event-count">0 events</span>
-    <span class="statusbar-sep">·</span>
-    <span id="statusbar-last-event">—</span>
-  </footer>
+      </aside>
+    </div>
+  </div>
 
-  <!-- EXPORT MODAL -->
-  <div id="export-modal" class="modal-overlay" style="display:none">
-    <div class="modal-box">
-      <div class="modal-header">
-        <span class="modal-title"><i data-lucide="download"></i> Export Audit Report</span>
-        <button class="modal-close" id="btn-close-export">✕</button>
+  <!-- HELP / INSTRUCTIONS OVERLAY -->
+  <div id="help-overlay" class="help-overlay" style="display:none">
+    <div class="help-modal">
+      <div class="help-header">
+        <h2>Welcome to AegisAlpha</h2>
+        <button id="btn-close-help" class="help-close"><i data-lucide="x"></i></button>
       </div>
-      <div class="modal-body">
-        <p>Choose export format:</p>
-        <div class="export-options">
-          <button class="export-opt-btn" id="btn-export-json"><i data-lucide="file-json"></i> JSON Report</button>
-          <button class="export-opt-btn" id="btn-export-txt"><i data-lucide="clipboard-list"></i> Text Summary</button>
+      <div class="help-body">
+
+        <div class="help-section help-highlight">
+          <h3><i data-lucide="sparkles"></i> The AI does everything for you</h3>
+          <p>You don't need to know anything about trading. AegisAlpha has <strong>4 AI agents</strong> that automatically find opportunities, pick the safest trades, and place them for you. All you do is click <strong>one button</strong>.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="zap"></i> How to start (1 step)</h3>
+          <p>Click the green <strong>"AI Scan"</strong> button in the top right corner. That's it. The AI will scan the market, find opportunities, check if they're safe, and make trades automatically. Results appear in the "Decision Feed" on the right.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="wallet"></i> Your Money (the big numbers)</h3>
+          <p><strong>Total Portfolio Value</strong> &mdash; How much money is in your account right now. This is the main number to watch.</p>
+          <p><strong>Today's Earnings</strong> &mdash; How much you've made (or lost) just today. Green = you're making money. Red = you're losing money.</p>
+          <p><strong>Unrealized P&amp;L</strong> &mdash; Money you've made on trades that are still open (not sold yet). Think of it as "paper profit" &mdash; it becomes real when the AI closes the trade.</p>
+          <p><strong>Buying Power</strong> &mdash; How much money is still available to make new trades.</p>
+          <p>All these numbers update automatically every 10 seconds. You don't need to refresh.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="activity"></i> Stock Tickers (top row)</h3>
+          <p>These are the stocks the AI watches: SPY, QQQ, NVDA, AAPL, TSLA, MSFT. The green/red tag shows if the price went up or down today. The tiny line chart shows the recent trend.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="trending-up"></i> The Big Chart</h3>
+          <p>This shows how much money a trade could make or lose at different stock prices. Above the $0 line = profit. Below = loss. You don't need to read this &mdash; the AI uses it internally to pick the best trades.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="sliders-horizontal"></i> The Numbers Below the Chart (Delta, Gamma, etc.)</h3>
+          <p>These are advanced trading metrics the AI uses to make decisions. <strong>You can completely ignore these.</strong> They exist so judges and advanced users can verify the AI is making smart choices.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="cpu"></i> Agent Pipeline (right side)</h3>
+          <p>This shows the 4 AI workers and what each one does:</p>
+          <p><strong>Market Scanner</strong> &mdash; Checks stock prices and trends</p>
+          <p><strong>Alpha Strategist</strong> &mdash; The AI brain that picks trading strategies</p>
+          <p><strong>Greeks Engine</strong> &mdash; Builds the exact trade with precise numbers</p>
+          <p><strong>Risk Gatekeeper</strong> &mdash; A safety checker that blocks any dangerous trade (no AI can override this)</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="radio"></i> Decision Feed (right side)</h3>
+          <p>After you click "AI Scan", this shows what the AI decided for each stock. <strong>Green "Approved"</strong> = the trade passed all safety checks and was placed. <strong>Red "Vetoed"</strong> = the trade was too risky and was blocked.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="shield-check"></i> 7 Safety Rules</h3>
+          <p>These are built-in safety limits that <strong>no one can turn off</strong> &mdash; not even the AI. They prevent the system from ever risking too much of your money. Think of them as guardrails on a highway.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="briefcase"></i> Active Positions</h3>
+          <p>Shows any trades currently open. Each row shows what was bought, at what price, and how much money it's making or losing right now. The "Close" button sells the position immediately.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="octagon-x"></i> The Red Button (top right)</h3>
+          <p><strong>Emergency stop.</strong> Instantly sells everything and cancels all pending trades. Only use this if something goes wrong and you want to pull out immediately.</p>
+        </div>
+
+        <div class="help-section">
+          <h3><i data-lucide="info"></i> Important Note</h3>
+          <p>This is a <strong>paper trading</strong> account &mdash; it uses fake money ($100,000). No real money is at risk. This is a safe sandbox where you can watch the AI work without any consequences.</p>
+        </div>
+
+  <!-- KILL SWITCH MODAL -->
+  <div id="kill-modal" class="help-overlay" style="display:none">
+    <div class="help-modal modal-sm">
+      <div class="help-header">
+        <h2 style="color:var(--red);display:flex;align-items:center;gap:8px"><i data-lucide="alert-triangle"></i> Emergency Liquidation</h2>
+        <button id="btn-cancel-kill-x" class="help-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="help-body">
+        <p style="font-size:0.85rem;color:var(--t1)">Are you sure you want to execute emergency liquidation? This will <strong>market-close all open positions</strong> and <strong>cancel all pending orders</strong> immediately.</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button id="btn-cancel-kill" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-kill" class="btn-danger"><i data-lucide="octagon-x"></i> Confirm Close All</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SETTINGS MODAL -->
-  <div id="settings-modal" class="modal-overlay" style="display:none">
-    <div class="modal-box" style="width: 380px;">
-      <div class="modal-header">
-        <span class="modal-title"><i data-lucide="settings"></i> System Configuration</span>
-        <button class="modal-close" id="btn-close-settings">✕</button>
+  <!-- CLOSE POSITION MODAL -->
+  <div id="close-modal" class="help-overlay" style="display:none">
+    <div class="help-modal modal-sm">
+      <div class="help-header">
+        <h2>Close Position</h2>
+        <button id="btn-cancel-close-x" class="help-close"><i data-lucide="x"></i></button>
       </div>
-      <div class="modal-body">
-        <p style="margin-bottom: 12px; font-size: 11px; color: var(--text-secondary);">Configure the target Band.ai room, API keys, and Render backend URL.</p>
-        <div class="settings-fields" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Room ID</label>
-            <input type="text" id="settings-room-id" style="background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; color: var(--text-primary); font-family: inherit; font-size: 12px; width: 100%; box-sizing: border-box;" />
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Planner API Key</label>
-            <input type="password" id="settings-api-key" style="background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; color: var(--text-primary); font-family: inherit; font-size: 12px; width: 100%; box-sizing: border-box;" />
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Backend URL (Render)</label>
-            <input type="text" id="settings-backend-url" placeholder="https://lexaudit.onrender.com" style="background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; color: var(--text-primary); font-family: inherit; font-size: 12px; width: 100%; box-sizing: border-box;" />
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; justify-content: flex-end;">
-          <button class="upload-btn upload-btn--ghost" id="btn-reset-settings" style="font-size: 11px; padding: 5px 12px;">Reset Default</button>
-          <button class="upload-btn upload-btn--primary" id="btn-save-settings" style="font-size: 11px; padding: 5px 16px;">Save Changes</button>
+      <div class="help-body">
+        <p id="close-modal-text" style="font-size:0.85rem;color:var(--t1)">Close position?</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button id="btn-cancel-close" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-close" class="btn-danger">Close Position</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="index.js" type="module"></script>
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="index.js"></script>
 </body>
 </html>

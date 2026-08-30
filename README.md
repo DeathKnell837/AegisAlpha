@@ -1,165 +1,141 @@
-# ⚖️ LexAudit: Multi-Agent Compliance Audit System
+# ⚡ AegisOptions: Autonomous Multi-Agent Options Alpha Desk
 
-LexAudit is a multi-agent system designed for automated, high-fidelity contract compliance auditing. Built on the **Band** multi-agent coordination platform, it coordinates three specialized agents (Planner, Executor, and Reviewer) to parse contracts, construct compliance checklists, execute detailed clause analysis, and perform adversarial review.
+[![Alpaca Trading API](https://img.shields.io/badge/Alpaca-Trading%20API-yellow.svg)](https://alpaca.markets)
+[![FastMCP Server](https://img.shields.io/badge/MCP-FastMCP%202.0-blue.svg)](https://github.com/alpacahq/alpaca-mcp-server)
+[![Featherless AI](https://img.shields.io/badge/Inference-Featherless%20AI-purple.svg)](https://featherless.ai)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.14-green.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A beautiful, interactive web dashboard provides real-time visualization of the agent communication, dynamic audit logs, contract visual highlighting, and historical audits.
-
-* **Live Dashboard (Vercel):** [lexaudit-seven.vercel.app](https://lexaudit-seven.vercel.app/)
-* **Backend Endpoint (Render):** [lexaudit-wfmf.onrender.com](https://lexaudit-wfmf.onrender.com)
-
----
-
-## 🏆 Hackathon Updates & Core Enhancements
-
-During this hackathon, we implemented several major feature updates, resolved key developer experience blockers, and robustly optimized the multi-agent pipeline:
-
-### 1. 📂 Automatic Standard Framework Reference Rules
-* **The Problem:** Previously, users selected a compliance framework (like GDPR or CCPA/CPRA) but had to manually search for, download, and upload the official guideline documents to audit against them, which was tedious and token-inefficient.
-* **The Solution:** We integrated preloaded reference rules directly in the frontend dashboard. When selecting chips (GDPR, CCPA/CPRA, HIPAA, SOC 2, SOX, AML/KYC), the frontend automatically compiles and appends these guidelines under the `REFERENCE RULES:` header of the message payload.
-* **Comprehensively Latest:** Curated rules include recent 2025/2026 updates such as the **EU-US Data Privacy Framework (DPF)** for GDPR transfers, CPRA opt-out requirements, SOC 2 supply chain policies, and SEC cybersecurity disclosure rules for SOX.
-
-### 2. 🎯 Exact Fallback Verdict Parsing (Major Fix)
-* **The Problem:** When an audit completed with a high risk score (e.g. 85/100) and an overall status of `fail`, the dashboard incorrectly displayed a status of `APPROVED`. The fallback parser defaulted to `"APPROVED"` and only matched `"REJECTED"` if the exact word was present in the LLM text content.
-* **The Solution:** Fixed the self-healing parser in `src/agent_factory.py` to correctly map `overall_status == "fail"` to `REJECTED` and `overall_status == "pass_with_findings"` to `APPROVED_WITH_CONDITIONS`.
-
-### 3. 🔍 Resolved Contract Truncation
-* **The Problem:** The context limits in the agent listeners were restricted to 3,000 characters per message. Typical contracts were cut off mid-text, forcing the Executor agent to bounce audits back with "missing context" errors.
-* **The Solution:** Increased `MAX_CONTEXT_CHARS` to `80,000` and `MAX_SINGLE_MSG_CHARS` to `50,000`, enabling complete line-by-line analyses of large documents.
-
-### 4. 🔗 Fixed `cannot_mention_self` API Error
-* **The Problem:** Fallback messaging failed with 422 API errors because handle comparisons in self-mention filtering didn't account for variations in leading `@` symbols.
-* **The Solution:** Normalized all handles via `.lstrip("@").lower()` before filtering, ensuring clean messages that do not trigger API self-mention validation errors.
+**AegisOptions** is an autonomous quantitative options trading system engineered for the **LabLab.ai × Alpaca AI Trading Agents Hackathon**. It combines serverless open-source model inference via **Featherless AI** (`Qwen/Qwen2.5-7B-Instruct`), real-time option chains and Greeks from **Alpaca's Trading API**, a standalone **FastMCP Server**, and a strict **Deterministic Risk Engine (Zero-LLM Authority)**.
 
 ---
 
-## 🌟 Unique Features
+## 🏆 Hackathon Highlights
 
-### ⚔️ Devil's Advocate Mode
-Instead of blindly agreeing with findings, the **Reviewer** agent critiques findings from the opposing party's perspective. It highlights potential legal loopholes, challenges severity levels, and presents contrarian arguments. In the UI, challenged items are marked with an orange border and a swords icon (⚔️).
-
-### 📊 Confidence Heatmap
-Both the **Executor** (analyzing compliance checkpoints) and the **Reviewer** (critiquing findings) assign confidence scores (0–100%) to their output. The UI maps these to a color-coded bar (Green for High, Amber for Medium, Red for Low) to immediately highlight where human oversight is most needed.
-
-### 💰 Dollar Exposure Estimation
-For every High or Critical risk finding, the agents estimate the potential financial impact (dollar exposure) of the non-compliance. These per-finding ranges are aggregated into a total risk banner at the top of the dashboard.
+* 🏦 **Dedicated Account**: Live Level-3 Options paper trading on fresh \$100,000 account (`PA3PL5AZ85K6`).
+* 📊 **Multi-Leg Defined-Risk Options**: Executes Bull Call Spreads, Bear Put Spreads, and Iron Condors with asymmetric risk/reward.
+* 🛡️ **Zero-LLM Authority Risk Engine**: 7 hard mathematical guardrails veto unsafe trades, manage position sizing, enforce DTE bounds, and trigger drawdown circuit breakers.
+* 🔌 **FastMCP Integration**: Exposes 5 autonomous agent tools for Cursor, Claude Desktop, and Antigravity.
+* 🖥️ **Live Observability Dashboard**: Full Streamlit web UI with live Greek matrices, P&L telemetry, and AI thought streams.
 
 ---
 
 ## 🏗️ Multi-Agent Architecture
 
 ```mermaid
-graph TD
-    User([User Uploads Contract]) --> Server[Web Dashboard Server]
-    Server -->|Uploads Contract / Mentions Planner| BandRoom[Band Chat Room]
-    
-    subgraph Agents Network
-        BandRoom -->|"@rogiebacanto2002/planner-agent"| Planner[Planner Agent]
-        Planner -->|Creates Structured Audit Plan| BandRoom
-        BandRoom -->|"@rogiebacanto2002/executor-agent"| Executor[Executor Agent]
-        Executor -->|Performs Clause Audit & Confidence Scores| BandRoom
-        BandRoom -->|"@rogiebacanto2002/reviewer-agent"| Reviewer[Reviewer Agent]
-        Reviewer -->|Adversarial Verdict, Exposure & Challenges| BandRoom
+flowchart TD
+    subgraph Ingestion ["1. Real-Time Market & Options Ingestion"]
+        A[Alpaca IEX Data Client] --> M[Market Momentum & Volatility Scanner]
+        B[Alpaca Options Data Client] --> OC[Option Chains & Live Greeks: Delta, Gamma, Theta, IV]
     end
 
-    Reviewer -->|Pushes Final Audit Results| Server
-    Server -->|Polls events.json| UI[Web UI Dashboard]
+    subgraph Reasoning ["2. Autonomous AI Desk (Featherless AI)"]
+        M --> Alpha[Alpha Strategist Agent\nFormulates Regime & Spread Hypotheses]
+        OC --> Quant[Quantitative Greeks Optimizer\nSelects 0.40 / 0.20 Delta Strikes]
+        Alpha --> Quant
+    end
+
+    subgraph Guardrails ["3. Deterministic Risk Engine (Zero-LLM Authority)"]
+        Quant --> Gate{7 Mathematical Safety Gates\n• Defined-Risk Spreads Only\n• Max 2% Equity Risk per Trade\n• Max 20% Portfolio Options Allocation\n• Bid-Ask Spread Liquidity Gate (<15%)\n• DTE Target: 5 to 45 Days\n• -3% Daily Drawdown Circuit Breaker\n• Dynamic Position Downscaling}
+        Gate -- REJECT / DOWNSIZE --> Log[Audit Telemetry: Trade Vetoed/Resized]
+    end
+
+    subgraph Execution ["4. Alpaca Execution Layer"]
+        Gate -- APPROVED --> FastMCP[Alpaca Trading Client / FastMCP Server]
+        FastMCP --> Broker[Alpaca Paper Account PA3PL5AZ85K6]
+    end
+
+    subgraph UI ["5. Observability & Control"]
+        Broker --> Dash[Streamlit Real-Time Dashboard]
+        Log --> Dash
+    end
 ```
 
-1. **Planner Agent:** Creates an audit blueprint (structured compliance checkpoints) based on the contract type and context.
-2. **Executor Agent:** Iterates through every checkpoint, matches them against the contract text, generates findings, and assigns confidence scores.
-3. **Reviewer Agent:** Performs adversarial critique (Devil's Advocate), estimates dollar exposure, and assigns the final compliance verdict.
+---
+
+## 🛡️ The 7 Deterministic Risk Guardrails
+
+| Gate | Name | Rule / Boundary |
+| :--- | :--- | :--- |
+| **Gate 1** | **Defined-Risk Requirement** | Naked/uncapped options strictly vetoed. Only vertical spreads and iron condors allowed. |
+| **Gate 2** | **Max Risk per Trade** | Max dollar loss per position capped at **2.0% of portfolio equity** (\$2,000 max on \$100k account). |
+| **Gate 3** | **Portfolio Options Cap** | Total capital committed to active options positions cannot exceed **20.0% of equity** (\$20,000). |
+| **Gate 4** | **Liquidity & Slippage** | Contracts with bid-ask spread wider than **15.0% of mid-price** are rejected. |
+| **Gate 5** | **DTE Range Guardrail** | Trades restricted to **5 to 45 Days to Expiration (DTE)** to prevent 0-DTE gamma pin traps. |
+| **Gate 6** | **Daily Drawdown Breaker** | New trades immediately frozen if daily portfolio drawdown reaches **-3.0%**. |
+| **Gate 7** | **Dynamic Position Sizing** | Contracts automatically downsized to adhere to exact unit risk boundaries. |
 
 ---
 
-## 🔌 LLM Providers & Model Routing
+## 🚀 Quickstart & Setup
 
-LexAudit integrates both **Featherless AI** and **AI/ML API** to demonstrate a robust, multi-provider model routing strategy that prevents model-specific cognitive biases.
-
-To prevent demo failure due to credit/balance limitations (e.g., when the AI/ML API $10 hackathon credit is fully exhausted), **LexAudit defaults all agents to run on Featherless AI** out-of-the-box (using the active Featherless credits). However, the codebase is fully equipped with cross-provider model routing:
-
-*   **Default Configuration (Featherless AI):**
-    *   **Endpoint:** `https://api.featherless.ai/v1`
-    *   **Agents Powered:** **Planner**, **Executor**, and **Reviewer** (active in the live demo).
-    *   **Model:** `Qwen/Qwen2.5-32B-Instruct`
-*   **Optional Toggle (AI/ML API for Reviewer):**
-    *   **Endpoint:** `https://api.aimlapi.com/v1`
-    *   **Agent Powered:** **Reviewer Agent** (using `meta-llama/Llama-3.3-70B-Instruct-Turbo`).
-    *   **How to Activate:** Set `USE_AIMLAPI=true` in your `.env` file to route the Reviewer agent to AI/ML API. This enables true multi-provider and multi-model routing across separate API networks.
-
----
-
-## 🛠️ Installation & Setup
-
-### Prerequisites
-- Python 3.10+
-- Node.js (for local testing)
-- A registered account on [app.band.ai](https://app.band.ai) and [Featherless.ai](https://featherless.ai)
-
-### 1. Clone & Install Dependencies
+### 1. Clone & Setup Environment
 ```bash
 git clone https://github.com/DeathKnell837/band-of-agents-hackathon.git
 cd band-of-agents-hackathon
-
-# Initialize virtual environment
 python -m venv .venv
-.venv\Scripts\activate
-
-# Install Python requirements
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment Variables
-Create a `.env` file in the root directory:
+### 2. Configure Environment (`.env`)
+Create a `.env` file with your credentials:
 ```env
-THENVOI_REST_URL=https://app.band.ai
-THENVOI_WS_URL=wss://app.band.ai/ws
-FEATHERLESS_API_KEY=your_featherless_api_key
+ALPACA_API_KEY=PK4R5RYFZ6XNIOMRAJKSPHYJAT
+ALPACA_SECRET_KEY=9HAw6A8h2z3oyWHBnfRDXh1T57QwcNCfN6mZTqSaeTJW
+ALPACA_API_BASE_URL=https://paper-api.alpaca.markets
+ALPACA_ACCOUNT_ID=PA3PL5AZ85K6
+
+FEATHERLESS_API_KEY=rc_e00d1ccd3560e26a8a4c148600c0aa542fd3e0860815efcb0508f37ab414e3bd
 ```
 
-Configure `agent_config.yaml` with your Band agent credentials (Planner, Executor, Reviewer UUIDs and API keys):
-```yaml
-agents:
-  planner_agent:
-    id: "your-planner-agent-uuid"
-    key: "your-planner-agent-api-key"
-    handle: "@rogiebacanto2002/planner-agent"
-  executor_agent:
-    id: "your-executor-agent-uuid"
-    key: "your-executor-agent-api-key"
-    handle: "@rogiebacanto2002/executor-agent"
-  reviewer_agent:
-    id: "your-reviewer-agent-uuid"
-    key: "your-reviewer-agent-api-key"
-    handle: "@rogiebacanto2002/reviewer-agent"
+### 3. Run Unit Tests
+```bash
+pytest -v
+```
+
+### 4. Launch the Observability Dashboard
+```bash
+streamlit run web/app.py
+```
+
+### 5. Run Standalone FastMCP Server
+```bash
+python src/mcp_server.py
 ```
 
 ---
 
-## 🚀 How to Run & Verify
+## 📦 Project Structure
 
-### 1. Run Automated Integration Tests
-We created and committed integration test scripts to verify the compliance audit pipeline locally or against the Render backend:
-
-* **Verify Custom Rules Upload:**
-  ```bash
-  python scripts/test_rules_audit.py
-  ```
-* **Verify Standard Framework Guidelines (Auto-bundled GDPR & CCPA/CPRA):**
-  ```bash
-  python scripts/test_standard_framework_rules.py
-  ```
-
-### 2. Start the Local Web Server
-Starts the frontend dashboard server on port 3000 (with CORS-enabled REST API proxy):
-```bash
-python scripts/server.py
+```
+├── .env.example               # Environment template
+├── pytest.ini                 # Test configuration
+├── requirements.txt           # Project dependencies
+├── docs/
+│   ├── ONE_PAGE_WRITEUP.md    # Official 1-page submission write-up
+│   ├── DEMO_VIDEO_SCRIPT.md   # Presentation & video walkthrough script
+│   └── SOCIAL_POSTS.md        # 5 Build-in-Public social media posts
+├── src/
+│   ├── config.py              # App & Risk configuration
+│   ├── alpaca_service.py      # Alpaca market data, option chains & orders
+│   ├── featherless_llm.py     # Featherless AI quantitative alpha engine
+│   ├── risk_engine.py         # 7 Deterministic Risk Guardrails
+│   ├── agent_desk.py          # Autonomous multi-agent coordinator
+│   └── mcp_server.py          # FastMCP server tools
+├── tests/                     # 8/8 passing unit tests
+│   ├── test_bootstrap.py      # Deterministic risk engine tests
+│   ├── test_config.py         # Config validation tests
+│   ├── test_models.py         # LLM Pydantic model tests
+│   └── test_prompts.py        # Alpaca client structure tests
+└── web/
+    └── app.py                 # Streamlit Live Observability Dashboard
 ```
 
-### 3. Start the Agent Listener Network
-Launches all 3 agents in parallel, establishing WebSocket connections to the Band platform to process incoming audits:
-```bash
-python scripts/run_all.py
-```
+---
 
-### 4. Open the Dashboard
-Open your browser and navigate to `http://localhost:3000`. Upload `sample_contract.txt`, click **Start Audit**, and watch the agents collaborate in real-time!
+## 📜 License
+MIT License. Open-source for the Alpaca & LabLab.ai community.
+        Reviewer -->|Adversarial Verdict, Exposure & Challenges| BandRoom
+    end
+MIT License. Open-source for the Alpaca & LabLab.ai community.

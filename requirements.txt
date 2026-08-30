@@ -1,6 +1,19 @@
-band-sdk[langgraph]>=0.1.0
-langchain-openai>=0.1.0
+# Core Agent & LLM
 python-dotenv>=1.0.0
+pydantic>=2.0.0
+httpx>=0.27.0
 pyyaml>=6.0.0
+
+# Alpaca Trading & Market Data
+alpaca-py>=0.20.0
+alpaca-mcp-server>=2.0.0
+
+# UI & Visualization Dashboard
+streamlit>=1.35.0
+plotly>=5.20.0
+pandas>=2.0.0
+rich>=13.7.0
+
+# Testing
 pytest>=8.0.0
 pytest-asyncio>=0.23.0

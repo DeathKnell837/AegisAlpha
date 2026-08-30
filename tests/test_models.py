@@ -1,27 +1,27 @@
 # tests/test_models.py
-import os
 import pytest
-from unittest.mock import patch
-from src.models import get_model_for_role
+from src.featherless_llm import OptionHypothesis, FeatherlessLLMEngine
 
-@patch.dict(os.environ, {"USE_MOCK_LLM": "false", "FEATHERLESS_API_KEY": "fake_key", "AIMLAPI_KEY": "fake_key", "USE_AIMLAPI": "false"})
-def test_model_mappings_default():
-    for role in ["planner", "executor", "reviewer"]:
-        llm = get_model_for_role(role)
-        assert llm.model_name is not None
-        assert llm.openai_api_base == "https://api.featherless.ai/v1"
-        assert llm.temperature == 0.1
+def test_option_hypothesis_model():
+    """Verify that OptionHypothesis correctly validates fields."""
+    hyp = OptionHypothesis(
+        symbol="SPY",
+        regime="BULLISH",
+        strategy="BULL_CALL_SPREAD",
+        confidence=0.88,
+        rationale="Strong upward momentum above 20d MA with expanding volume.",
+        suggested_dte_target=14
+    )
+    assert hyp.symbol == "SPY"
+    assert hyp.regime == "BULLISH"
+    assert hyp.confidence == 0.88
+    assert hyp.suggested_dte_target == 14
 
-@patch.dict(os.environ, {"USE_MOCK_LLM": "false", "FEATHERLESS_API_KEY": "fake_key", "AIMLAPI_KEY": "fake_key", "USE_AIMLAPI": "true"})
-def test_model_mappings_aiml():
-    for role in ["planner", "executor", "reviewer"]:
-        llm = get_model_for_role(role)
-        assert llm.model_name is not None
-        if role == "reviewer":
-            assert llm.openai_api_base == "https://api.aimlapi.com/v1"
-        else:
-            assert llm.openai_api_base == "https://api.featherless.ai/v1"
-        assert llm.temperature == 0.1
+def test_featherless_llm_initialization():
+    """Verify FeatherlessLLMEngine initializes with correct base url and model."""
+    engine = FeatherlessLLMEngine()
+    assert engine.api_key != ""
+    assert "Qwen" in engine.model or "Mistral" in engine.model
 
 
 

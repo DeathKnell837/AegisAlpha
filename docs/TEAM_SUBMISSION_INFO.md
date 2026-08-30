@@ -26,8 +26,8 @@ Returnee is a solo competitive hackathon team focused on pushing the frontier of
 
 ## 2. Project Submission Information
 
-- **Project Title**: `AegisOptions: Autonomous Multi-Agent Options Trading Desk`
-- **Short Pitch (1-liner)**: `An autonomous 4-agent options trading desk powered by Alpaca FastMCP, Qwen-2.5-72B via Featherless AI, and 7 zero-LLM deterministic mathematical risk guardrails.`
+- **Project Title**: `AegisAlpha: Autonomous AI Options Desk`
+- **Short Pitch (1-liner)**: `Autonomous multi-agent options trading desk powered by Alpaca FastMCP, Qwen-2.5-72B on Featherless AI, and 7 zero-LLM deterministic mathematical risk guardrails.`
 
 ### Track / Category:
 - `AI Trading Agents / Multi-Agent Systems / FastMCP Tool Integration`

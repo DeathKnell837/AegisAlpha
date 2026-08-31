@@ -1128,69 +1128,91 @@ function initWatchlistClicks() {
   });
 }
 
-/* ── RUN AI AGENTS BUTTON WITH FULL PIPELINE SIMULATION & LIVE PROGRESS ── */
+/* ── RUN AI AGENTS BUTTON WITH PARALLEL LIVE STOPWATCH & DYNAMIC AGENT HIGHLIGHTS ── */
 document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   const btn = document.getElementById('btn-run-scan');
   if (btn.disabled) return;
   btn.disabled = true;
 
   const watchlist = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
-  const agentNames = [
-    { title: 'Market Scanner', desc: 'Pulling 6 live IEX feeds...' },
-    { title: 'Alpha Strategist', desc: 'Qwen-72B analyzing regimes...' },
-    { title: 'Greeks Engine', desc: 'Structuring 0.40/0.20Δ spreads...' },
-    { title: 'Risk Gatekeeper', desc: 'Auditing 7 deterministic gates...' }
-  ];
   const nodes = document.querySelectorAll('.ag-node');
   const feed = document.getElementById('decision-feed');
 
   // Clear previous feed
   if (feed) feed.innerHTML = '';
 
-  const updateBtnText = (stage, desc, secLeft) => {
-    btn.innerHTML = `<i data-lucide="loader-2" style="animation:spinSlow 0.9s linear infinite"></i><span>${stage}: ${desc} (${secLeft}s)</span>`;
-    lucide.createIcons();
-  };
+  let elapsed = 0;
+  let isDone = false;
 
-  // Phase 1: Animate each agent sequentially with countdown
-  for (let i = 0; i < agentNames.length; i++) {
-    const secRemaining = Math.max(1, (agentNames.length - i) * 2);
-    updateBtnText(`Stage ${i+1}/4`, agentNames[i].title, secRemaining);
+  const updateProgress = () => {
+    let stageTitle = '';
+    let stageDesc = '';
+    let activeIdx = 0;
+
+    if (elapsed < 3) {
+      stageTitle = '1/4 Market Scanner';
+      stageDesc = 'Pulling IEX Quotes';
+      activeIdx = 0;
+    } else if (elapsed < 10) {
+      stageTitle = '2/4 Alpha Strategist';
+      stageDesc = 'Qwen-72B Reasoning';
+      activeIdx = 1;
+    } else if (elapsed < 16) {
+      stageTitle = '3/4 Greeks Engine';
+      stageDesc = 'Pricing 0.40Δ Spreads';
+      activeIdx = 2;
+    } else {
+      stageTitle = '4/4 Risk Gatekeeper';
+      stageDesc = 'Auditing 7 Safety Gates';
+      activeIdx = 3;
+    }
 
     nodes.forEach((n, idx) => {
-      if (idx === i) n.classList.add('active-scanning');
+      if (idx === activeIdx) n.classList.add('active-scanning');
       else n.classList.remove('active-scanning');
     });
 
-    showToast(`Agent ${i+1}/4 [${agentNames[i].title}]: ${agentNames[i].desc}`, 'info');
-    await new Promise(r => setTimeout(r, 1100));
-  }
-  nodes.forEach(n => n.classList.remove('active-scanning'));
+    btn.innerHTML = `<i data-lucide="loader-2" style="animation:spinSlow 0.8s linear infinite"></i><span>[${stageTitle}] ${stageDesc} (${elapsed}s)</span>`;
+    lucide.createIcons();
+  };
 
-  updateBtnText('Finalizing', 'Executing orders...', 1);
+  updateProgress();
+  const timerInterval = setInterval(() => {
+    if (isDone) return;
+    elapsed++;
+    updateProgress();
+  }, 1000);
 
-  // Try real backend first
+  // Run backend scan in parallel
   let usedRealBackend = false;
+  let passedCount = 0;
+  let totalCount = 6;
+
   try {
-    const r = await fetch('/api/run-scan', {
+    const fetchPromise = fetch('/api/run-scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ watchlist: watchlist.slice(0, 4) })
     });
+
+    // Timeout safety of 18s for seamless UX fallback
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 18000));
+    const r = await Promise.race([fetchPromise, timeoutPromise]);
     const results = await r.json();
+
     if (Array.isArray(results) && results.length > 0 && results[0].risk_result) {
       usedRealBackend = true;
+      passedCount = results.filter(res => res.risk_result?.passed).length;
+      totalCount = results.length;
       await fetchAccount();
       await fetchPositions();
       await fetchLogs();
-      const passedCount = results.filter(r => r.risk_result?.passed).length;
-      showToast(`AI Scan Complete! ${passedCount}/${results.length} trades passed all 7 Risk Gates.`, 'success');
     }
   } catch (e) {
-    console.log('Backend fallback to demo simulation');
+    console.log('Backend simulated demo stream active');
   }
 
-  // Phase 2: If no real backend or static demo, render realistic decisions
+  // Populate Decision Feed with realistic decisions
   if (!usedRealBackend && feed) {
     const simResults = [
       { sym: 'SPY',  strategy: 'Bull Call Spread',  passed: true,  rationale: 'Mild bullish momentum, price above 5/20 MAs. Realized vol 9.3% indicates high risk-adjusted spread probability.', qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87 },
@@ -1201,8 +1223,11 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
       { sym: 'MSFT', strategy: 'Bull Call Spread',   passed: true,  rationale: 'Enterprise SaaS momentum regime. 0.32 Delta call spread structured with 30 DTE.', qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85 },
     ];
 
+    passedCount = simResults.filter(r => r.passed).length;
+    totalCount = simResults.length;
+
     for (const res of simResults) {
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 200));
       const cardHtml = buildDecisionCardHtml({
         symbol: res.sym,
         strategy: res.strategy,
@@ -1221,16 +1246,19 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
       lucide.createIcons();
       updateFeedCounters();
     }
-
-    const passedCount = simResults.filter(r => r.passed).length;
-    showToast(`AI Complete! ${passedCount}/${simResults.length} approved by Risk Gatekeeper.`, 'success');
   }
 
-  // Completion state: Green checkmark for 2.5s
-  btn.innerHTML = '<i data-lucide="check-circle" style="color:var(--teal)"></i><span style="color:var(--teal)">✓ Scan Complete</span>';
+  isDone = true;
+  clearInterval(timerInterval);
+  nodes.forEach(n => n.classList.remove('active-scanning'));
+
+  showToast(`AI Pipeline Complete in ${elapsed}s! ${passedCount}/${totalCount} trades approved.`, 'success');
+
+  // Flash green completion badge with actual elapsed time
+  btn.innerHTML = `<i data-lucide="check-circle" style="color:var(--teal)"></i><span style="color:var(--teal)">✓ Complete (${elapsed}s) • ${passedCount} Approved</span>`;
   lucide.createIcons();
 
-  await new Promise(r => setTimeout(r, 2500));
+  await new Promise(r => setTimeout(r, 3000));
 
   btn.disabled = false;
   btn.innerHTML = '<i data-lucide="zap"></i><span>Run AI Agents</span>';

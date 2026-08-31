@@ -464,9 +464,10 @@ async function fetchAccount() {
   try {
     const r = await fetch('/api/account');
     if (!r.ok) return;
-    const d = await r.json();
-    const equity = d.equity || 100000;
-    const bp = d.buying_power || 397423.96;
+    const equity = (typeof d.equity === 'number') ? d.equity : 100000;
+    const bp = (typeof d.options_buying_power === 'number' && d.options_buying_power > 0)
+      ? d.options_buying_power
+      : ((typeof d.buying_power === 'number') ? d.buying_power : (d.cash || equity));
     const pv = d.day_pnl || 0;
     const pp = d.day_pnl_pct || 0;
 

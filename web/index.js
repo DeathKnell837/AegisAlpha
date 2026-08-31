@@ -720,5 +720,6 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchAccount();
     fetchPositions();
     fetchOrders();
+    fetchLogs();
   }, 10000);
 });

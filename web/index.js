@@ -772,33 +772,12 @@ function getActiveProfile() {
   return { stock, strat };
 }
 
-function updatePayoffKPIs() {
+function updatePayoffDisplay() {
   const { stock, strat } = getActiveProfile();
 
-  // 1. KPI Strip
-  const pProfit = document.getElementById('pm-max-profit');
-  if (pProfit) pProfit.textContent = `+$${strat.maxProfit.toFixed(2)}`;
-  const pRoi = document.getElementById('pm-max-roi');
-  if (pRoi) pRoi.textContent = strat.maxRoi;
-
-  const pLoss = document.getElementById('pm-max-loss');
-  if (pLoss) pLoss.textContent = `-$${Math.abs(strat.maxLoss).toFixed(2)}`;
-
-  const pBe = document.getElementById('pm-breakeven');
-  if (pBe) pBe.textContent = strat.breakeven;
-  const pBeDist = document.getElementById('pm-be-dist');
-  if (pBeDist) pBeDist.textContent = strat.beDist;
-
-  const pRr = document.getElementById('pm-rr');
-  if (pRr) pRr.textContent = strat.rr;
-
-  const pPop = document.getElementById('pm-pop');
-  if (pPop) pPop.textContent = strat.pop;
-
-  const pSpot = document.getElementById('pm-spot');
-  if (pSpot) pSpot.textContent = `$${stock.price.toFixed(2)}`;
-  const pSpotTrend = document.getElementById('pm-spot-trend');
-  if (pSpotTrend) pSpotTrend.textContent = stock.trend;
+  // 1. Update Strategy Badge
+  const badgeName = document.getElementById('badge-strat-name');
+  if (badgeName) badgeName.textContent = strat.name;
 
   // 2. Greeks Row
   const dEl = document.getElementById('val-delta');
@@ -825,11 +804,6 @@ function updatePayoffKPIs() {
   if (ivEl) ivEl.textContent = strat.iv;
   const ivBar = document.getElementById('bar-iv');
   if (ivBar) ivBar.style.width = `${strat.ivRank || 42}%`;
-
-  // 3. Strategy Buttons State
-  document.querySelectorAll('.pss-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.strat === currentStrategyKey);
-  });
 }
 
 function initPayoffChart() {
@@ -837,10 +811,10 @@ function initPayoffChart() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 230);
-  grad.addColorStop(0, 'rgba(0,212,170,0.28)');
-  grad.addColorStop(0.5, 'rgba(0,212,170,0.06)');
-  grad.addColorStop(1, 'rgba(246,70,93,0.12)');
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 235);
+  grad.addColorStop(0, 'rgba(0,212,170,0.22)');
+  grad.addColorStop(0.6, 'rgba(0,212,170,0.03)');
+  grad.addColorStop(1, 'rgba(246,70,93,0.08)');
 
   const { strat } = getActiveProfile();
 
@@ -854,23 +828,23 @@ function initPayoffChart() {
           data: strat.payoff,
           borderColor: '#00D4AA',
           backgroundColor: grad,
-          borderWidth: 2.8,
+          borderWidth: 2.5,
           fill: true,
-          tension: 0.35,
+          tension: 0.38,
           pointBackgroundColor: '#00D4AA',
           pointBorderColor: '#0B0E11',
           pointBorderWidth: 2,
-          pointRadius: 4.5,
-          pointHoverRadius: 7,
+          pointRadius: 4,
+          pointHoverRadius: 6.5,
           pointHoverBackgroundColor: '#FFFFFF',
           pointHoverBorderColor: '#00D4AA'
         },
         {
-          label: 'Breakeven Zero',
+          label: 'Breakeven',
           data: strat.strikes.map(() => 0),
-          borderColor: 'rgba(255,255,255,0.15)',
-          borderWidth: 1.5,
-          borderDash: [5, 5],
+          borderColor: 'rgba(255,255,255,0.12)',
+          borderWidth: 1.2,
+          borderDash: [4, 4],
           pointRadius: 0,
           fill: false
         }
@@ -883,14 +857,14 @@ function initPayoffChart() {
       scales: {
         x: {
           grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-          ticks: { color: '#848E9C', font: { family: 'JetBrains Mono', size: 10, weight: '600' } }
+          ticks: { color: '#5E6673', font: { family: 'JetBrains Mono', size: 11, weight: '500' } }
         },
         y: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+          grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
           ticks: {
-            color: '#848E9C',
-            font: { family: 'JetBrains Mono', size: 10, weight: '600' },
-            callback: v => (v >= 0 ? '+$' : '-$') + Math.abs(v)
+            color: '#5E6673',
+            font: { family: 'JetBrains Mono', size: 11, weight: '500' },
+            callback: v => (v > 0 ? '+$' : (v < 0 ? '-$' : '$')) + Math.abs(v)
           }
         }
       },
@@ -913,7 +887,7 @@ function initPayoffChart() {
               if (item.datasetIndex === 1) return null;
               const val = item.raw;
               const roi = ((val / 100) * 100).toFixed(0);
-              const zone = val > 0 ? '✅ Profit Zone' : (val < 0 ? '❌ Loss Capped' : '⚖️ Breakeven Spot');
+              const zone = val > 0 ? 'Profit Zone' : (val < 0 ? 'Defined Risk Capped' : 'Breakeven');
               return [
                 `Estimated P&L: ${val >= 0 ? '+' : ''}$${val.toFixed(2)} (${roi}% ROI)`,
                 `Status: ${zone}`
@@ -925,7 +899,7 @@ function initPayoffChart() {
     }
   });
 
-  updatePayoffKPIs();
+  updatePayoffDisplay();
 }
 
 function updatePayoffChart() {
@@ -936,25 +910,19 @@ function updatePayoffChart() {
   payoffChart.data.datasets[0].data = strat.payoff;
   payoffChart.data.datasets[1].data = strat.strikes.map(() => 0);
   payoffChart.update();
-  updatePayoffKPIs();
+  updatePayoffDisplay();
 }
 
-// Strategy switcher buttons click handler
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.pss-btn');
-  if (btn && btn.dataset.strat) {
-    currentStrategyKey = btn.dataset.strat;
-    updatePayoffChart();
-    showToast(`Switched strategy: ${btn.textContent.trim()}`);
-  }
+/* ── STRATEGY BADGE TOGGLE (CLICK BADGE TO CYCLE STRATEGIES) ── */
+document.getElementById('current-strategy-badge')?.addEventListener('click', () => {
+  const stratKeys = ['BULL_CALL', 'BEAR_PUT', 'IRON_CONDOR'];
+  let idx = stratKeys.indexOf(currentStrategyKey);
+  idx = (idx + 1) % stratKeys.length;
+  currentStrategyKey = stratKeys[idx];
 
-  const dteBtn = e.target.closest('.pdte-btn');
-  if (dteBtn && dteBtn.dataset.dte) {
-    document.querySelectorAll('.pdte-btn').forEach(b => b.classList.remove('active'));
-    dteBtn.classList.add('active');
-    currentDTE = parseInt(dteBtn.dataset.dte);
-    showToast(`DTE Horizon set to: ${currentDTE} Days`);
-  }
+  updatePayoffChart();
+  const { strat } = getActiveProfile();
+  showToast(`Payoff strategy switched to: ${strat.name}`);
 });
 
 /* ── SWITCH ACTIVE STOCK (WATCHLIST CLICK) ── */
@@ -968,7 +936,7 @@ function selectStock(sym) {
     card.classList.toggle('active', card.dataset.symbol === sym);
   });
 
-  // 2. Refresh Payoff Chart & KPIs
+  // 2. Refresh Payoff Chart & Greeks
   updatePayoffChart();
 
   // 3. Update Manual Trade Input & Auto-load Chain
@@ -976,7 +944,7 @@ function selectStock(sym) {
   if (tradeInput) tradeInput.value = sym;
   loadOptionChain(sym);
 
-  showToast(`Selected ${sym} ($${stock.price})`);
+  showToast(`Selected ${sym} ($${stock.price.toFixed(2)})`);
 }
 
 /* ── OPTION CHAIN LOADER ── */

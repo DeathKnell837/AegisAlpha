@@ -79,7 +79,7 @@ flowchart TD
 
 ### 1. Clone & Setup Environment
 ```bash
-git clone https://github.com/DeathKnell837/band-of-agents-hackathon.git
+git clone https://github.com/DeathKnell837/AegisAlpha.git
 cd band-of-agents-hackathon
 python -m venv .venv
 .\.venv\Scripts\activate

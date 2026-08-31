@@ -13,7 +13,7 @@
 > 🔌 Alpaca FastMCP server tools
 > 
 > 🌐 Live App: https://aegis-alpha-desk.vercel.app
-> 💻 GitHub: https://github.com/DeathKnell837/band-of-agents-hackathon
+> 💻 GitHub: https://github.com/DeathKnell837/AegisAlpha
 > 
 > #AlpacaHackathon #AITrading #QuantFinance #AlpacaMarkets #LablabAI #BuildInPublic
 

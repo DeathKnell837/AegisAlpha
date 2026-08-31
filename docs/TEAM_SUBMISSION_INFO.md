@@ -50,7 +50,7 @@ AegisOptions solves this by separating strategy generation from risk enforcement
 
 ## 3. Official Links
 
-- **GitHub Repository**: [https://github.com/DeathKnell837/band-of-agents-hackathon](https://github.com/DeathKnell837/band-of-agents-hackathon)
+- **GitHub Repository**: [https://github.com/DeathKnell837/AegisAlpha](https://github.com/DeathKnell837/AegisAlpha)
 - **Live Production App**: [https://aegis-alpha-desk.vercel.app](https://aegis-alpha-desk.vercel.app)
 - **Interactive Slide Deck**: [https://aegis-alpha-desk.vercel.app/slides.html](https://aegis-alpha-desk.vercel.app/slides.html)
-- **1-Page Architecture Doc**: [https://github.com/DeathKnell837/band-of-agents-hackathon/blob/master/docs/ONE_PAGE_WRITEUP.md](https://github.com/DeathKnell837/band-of-agents-hackathon/blob/master/docs/ONE_PAGE_WRITEUP.md)
+- **1-Page Architecture Doc**: [https://github.com/DeathKnell837/AegisAlpha/blob/master/docs/ONE_PAGE_WRITEUP.md](https://github.com/DeathKnell837/AegisAlpha/blob/master/docs/ONE_PAGE_WRITEUP.md)

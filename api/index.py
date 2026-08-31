@@ -154,7 +154,12 @@ class handler(BaseHTTPRequestHandler):
             })
             return
 
-        self.send_json_response({'status': 'AegisAlpha Vercel API Online'}, 200)
+        self.send_json_response({
+            'status': 'AegisAlpha Vercel API Online',
+            'debug_path': self.path,
+            'debug_route': route,
+            'debug_headers': {k: v for k, v in self.headers.items()}
+        }, 200)
 
     def do_POST(self):
         parsed = urlparse(self.path)

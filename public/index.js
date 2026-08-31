@@ -541,6 +541,8 @@ async function fetchPositions() {
       earnUnreal.textContent = `${totalUnreal >= 0 ? '+' : ''}$${totalUnreal.toFixed(2)}`;
       earnUnreal.className = `earn-big ${totalUnreal >= 0 ? 'pos' : 'neg'}`;
     }
+    const earnPos = document.getElementById('earn-positions');
+    if (earnPos) earnPos.textContent = `${pos.length} position${pos.length === 1 ? '' : 's'}`;
     // Update position count badge
     const badgePos = document.getElementById('badge-pos-count');
     if (badgePos) badgePos.textContent = pos.length;

@@ -232,6 +232,17 @@ select.tf-input{font-family:var(--f);cursor:pointer;appearance:none;background-i
 .fe-aud{background:rgba(0,0,0,.2);border-radius:var(--r3);padding:6px 8px;font-size:.65rem;font-family:var(--m);color:var(--t3);display:flex;flex-direction:column;gap:2px}
 .feed-empty{display:flex;flex-direction:column;align-items:center;gap:7px;padding:24px 10px;color:var(--t3);font-size:.72rem;text-align:center}
 .feed-empty i{width:20px;height:20px;animation:spinSlow 12s linear infinite;opacity:.35}
+.feed-entry{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 12px;display:flex;flex-direction:column;gap:5px;animation:fadeIn .3s ease}
+.feed-entry.feed-pass{border-left:3px solid var(--teal)}.feed-entry.feed-veto{border-left:3px solid var(--red)}
+.feed-entry .fe-hd{display:flex;align-items:center;gap:8px}
+.feed-entry .fe-hd i{width:14px;height:14px}
+.feed-entry.feed-pass .fe-hd i{color:var(--teal)}.feed-entry.feed-veto .fe-hd i{color:var(--red)}
+.feed-entry .fe-sym{font-size:.82rem;font-weight:800;color:var(--t1)}
+.feed-entry .fe-badge{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:var(--rp)}
+.feed-entry .fe-badge.feed-pass{background:var(--teal-d);color:var(--teal)}.feed-entry .fe-badge.feed-veto{background:var(--red-d);color:var(--red)}
+.feed-entry .fe-conf{font-size:.62rem;color:var(--t3);margin-left:auto}
+.feed-entry .fe-strat{font-size:.7rem;color:var(--hi);font-weight:600}
+.feed-entry .fe-reason{font-size:.65rem;color:var(--t2);line-height:1.4}
 .card-guard{padding:12px 14px}
 .guard-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px}
 .guard-hd i{width:13px;height:13px;color:var(--teal)}

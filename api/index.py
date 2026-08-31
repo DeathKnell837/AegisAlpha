@@ -1,6 +1,8 @@
 # api/index.py - Vercel Serverless Function Entrypoint
 import json
+import os
 import sys
+import traceback
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler
@@ -9,16 +11,27 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Load .env if present (local dev), Vercel env vars are auto-loaded
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT_DIR / '.env')
+except ImportError:
+    pass
+
 _desk = None
+_desk_error = None
 
 def get_desk():
-    global _desk
-    if _desk is None:
+    global _desk, _desk_error
+    if _desk is None and _desk_error is None:
         try:
             from src.agent_desk import AegisOptionsDesk
             _desk = AegisOptionsDesk()
+            print(f"AegisOptionsDesk initialized successfully")
         except Exception as e:
-            print(f"Warning: AegisOptionsDesk init: {e}")
+            _desk_error = str(e)
+            print(f"AegisOptionsDesk init failed: {e}")
+            traceback.print_exc()
     return _desk
 
 class handler(BaseHTTPRequestHandler):
@@ -115,6 +128,18 @@ class handler(BaseHTTPRequestHandler):
                 except Exception as e:
                     pass
             self.send_json_response([])
+            return
+
+        elif path in ['/api/status', '/status']:
+            desk = get_desk()
+            self.send_json_response({
+                'api': 'AegisAlpha Vercel API',
+                'desk_loaded': desk is not None,
+                'desk_error': _desk_error,
+                'alpaca_key_set': bool(os.environ.get('ALPACA_API_KEY')),
+                'featherless_key_set': bool(os.environ.get('FEATHERLESS_API_KEY')),
+                'python_version': sys.version
+            })
             return
 
         self.send_json_response({'status': 'AegisAlpha Vercel API Online'}, 200)

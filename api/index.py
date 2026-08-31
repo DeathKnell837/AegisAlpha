@@ -53,10 +53,10 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
-        path = parsed.path
+        path = parsed.path.lower()
         desk = get_desk()
 
-        if path in ['/api/account', '/account']:
+        if 'account' in path:
             if desk:
                 try:
                     self.send_json_response(desk.alpaca.get_account())
@@ -76,7 +76,7 @@ class handler(BaseHTTPRequestHandler):
             })
             return
 
-        elif path in ['/api/positions', '/positions']:
+        elif 'positions' in path:
             if desk:
                 try:
                     self.send_json_response(desk.alpaca.get_positions())
@@ -86,7 +86,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([])
             return
 
-        elif path in ['/api/logs', '/logs']:
+        elif 'logs' in path:
             if desk:
                 try:
                     self.send_json_response([l.model_dump() for l in desk.trade_logs])
@@ -96,7 +96,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([])
             return
 
-        elif path.startswith('/api/chain') or path.startswith('/chain'):
+        elif 'chain' in path:
             query = parse_qs(parsed.query)
             sym = query.get('symbol', ['SPY'])[0].upper()
             if desk:
@@ -108,7 +108,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'symbol': sym, 'underlying_price': 769.28, 'trend': 'MILD_BULLISH', 'calls': [], 'puts': []})
             return
 
-        elif path in ['/api/orders', '/orders']:
+        elif 'orders' in path:
             if desk:
                 try:
                     orders = desk.alpaca.trading_client.get_orders()
@@ -130,7 +130,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([])
             return
 
-        elif path in ['/api/status', '/status']:
+        elif 'status' in path:
             desk = get_desk()
             self.send_json_response({
                 'api': 'AegisAlpha Vercel API',
@@ -146,10 +146,10 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
-        path = parsed.path
+        path = parsed.path.lower()
         desk = get_desk()
 
-        if path in ['/api/run-scan', '/run-scan']:
+        if 'run-scan' in path or 'scan' in path:
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
             if desk:
@@ -160,11 +160,11 @@ class handler(BaseHTTPRequestHandler):
                     self.send_json_response([r.model_dump() for r in results])
                     return
                 except Exception as e:
-                    pass
+                    print(f"run_cycle error: {e}")
             self.send_json_response([{'status': 'SUCCESS', 'message': 'Scan cycle completed on Vercel'}])
             return
 
-        elif path in ['/api/kill-switch', '/kill-switch']:
+        elif 'kill-switch' in path or 'kill' in path:
             if desk:
                 try:
                     res = desk.alpaca.close_all_positions()
@@ -175,13 +175,12 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'status': 'SUCCESS', 'closed_count': 0})
             return
 
-        elif path in ['/api/close-position', '/close-position']:
+        elif 'close-position' in path or 'close' in path:
             self.send_json_response({'status': 'CLOSED'})
             return
 
-        elif path in ['/api/manual-order', '/manual-order']:
+        elif 'manual-order' in path or 'order' in path:
             self.send_json_response({'status': 'ACCEPTED', 'order_id': 'vcl-ord-001'})
             return
 
-        self.send_response(404)
-        self.end_headers()
+        self.send_json_response({'status': 'AegisAlpha Vercel POST Handler Online'}, 200)

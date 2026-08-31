@@ -1264,6 +1264,43 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+/* ── MARKET STATUS TRACKER ── */
+function updateMarketStatus() {
+  const now = new Date();
+  const utcDay = now.getUTCDay();
+  const utcHours = now.getUTCHours();
+  const utcMins = now.getUTCMinutes();
+  const utcTimeMin = utcHours * 60 + utcMins;
+
+  // NYSE Trading Hours: Monday (1) to Friday (5), 13:30 UTC to 20:00 UTC (9:30 AM - 4:00 PM EDT)
+  const isWeekday = utcDay >= 1 && utcDay <= 5;
+  const isOpenTime = utcTimeMin >= 810 && utcTimeMin < 1200;
+  const isOpen = isWeekday && isOpenTime;
+
+  const chip = document.getElementById('market-status-chip');
+  const dot = chip?.querySelector('.mkt-dot');
+  const txt = document.getElementById('mkt-status-text');
+
+  if (isOpen) {
+    if (dot) { dot.className = 'mkt-dot open'; }
+    if (txt) { txt.textContent = 'NYSE LIVE • Market Open'; txt.className = 'mkt-status open'; }
+  } else {
+    if (dot) { dot.className = 'mkt-dot closed'; }
+    let target = new Date(now);
+    target.setUTCHours(13, 30, 0, 0);
+    if (now > target || !isWeekday) {
+      if (utcDay === 5 && utcTimeMin >= 1200) target.setUTCDate(target.getUTCDate() + 3);
+      else if (utcDay === 6) target.setUTCDate(target.getUTCDate() + 2);
+      else if (utcDay === 0) target.setUTCDate(target.getUTCDate() + 1);
+      else if (utcTimeMin >= 1200) target.setUTCDate(target.getUTCDate() + 1);
+    }
+    const diffMs = Math.max(0, target - now);
+    const diffH = Math.floor(diffMs / 3600000);
+    const diffM = Math.floor((diffMs % 3600000) / 60000);
+    if (txt) { txt.textContent = `NYSE Closed • Opens in ${diffH}h ${diffM}m`; txt.className = 'mkt-status'; }
+  }
+}
+
 /* ── INITIALIZATION ── */
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
@@ -1274,6 +1311,7 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchPositions();
   fetchOrders();
   fetchLogs();
+  updateMarketStatus();
 
   // Auto-refresh every 10 seconds
   setInterval(() => {
@@ -1281,5 +1319,6 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchPositions();
     fetchOrders();
     fetchLogs();
+    updateMarketStatus();
   }, 10000);
 });

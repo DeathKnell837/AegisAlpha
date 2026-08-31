@@ -631,8 +631,13 @@ document.getElementById('btn-cancel-close-x')?.addEventListener('click', hideClo
 document.getElementById('btn-confirm-close')?.addEventListener('click', async () => {
   if (!pendingCloseSymbol) return;
   const sym = pendingCloseSymbol;
-  hideCloseModal();
-  showToast(`Closing position ${sym}...`, 'info');
+  const confirmBtn = document.getElementById('btn-confirm-close');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i data-lucide="loader-2" style="animation:spinSlow 0.8s linear infinite"></i> Closing...';
+    lucide.createIcons();
+  }
+  showToast(`Submitting market close for ${sym}...`, 'info');
   try {
     const r = await fetch('/api/close-position', {
       method: 'POST',
@@ -640,6 +645,7 @@ document.getElementById('btn-confirm-close')?.addEventListener('click', async ()
       body: JSON.stringify({ symbol: sym })
     });
     const d = await r.json();
+    hideCloseModal();
     if (d.status === 'CLOSED' || d.order_id) {
       showToast(`Position for ${sym} closed successfully!`, 'success');
     } else {
@@ -648,7 +654,13 @@ document.getElementById('btn-confirm-close')?.addEventListener('click', async ()
     await fetchPositions();
     await fetchAccount();
   } catch (e) {
-    showToast(`Failed to close position: ${e.message}`, 'error');
+    hideCloseModal();
+    showToast(`Error closing position: ${e.message}`, 'error');
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = 'Close Position';
+    }
   }
 });
 
@@ -1240,16 +1252,30 @@ document.getElementById('btn-cancel-kill-x')?.addEventListener('click', () => {
 });
 
 document.getElementById('btn-confirm-kill')?.addEventListener('click', async () => {
-  document.getElementById('kill-modal').style.display = 'none';
-  showToast('Executing Emergency Liquidation...', 'error');
+  const killBtn = document.getElementById('btn-confirm-kill');
+  if (killBtn) {
+    killBtn.disabled = true;
+    killBtn.innerHTML = '<i data-lucide="loader-2" style="animation:spinSlow 0.8s linear infinite"></i> Liquidating All...';
+    lucide.createIcons();
+  }
+  showToast('Executing Emergency Liquidation on Alpaca...', 'error');
   try {
     const r = await fetch('/api/kill-switch', { method: 'POST' });
     const d = await r.json();
+    document.getElementById('kill-modal').style.display = 'none';
     showToast(`Liquidation complete! Closed ${d.closed_count || 0} positions.`, 'success');
     await fetchAccount();
     await fetchPositions();
+    await fetchOrders();
   } catch (e) {
+    document.getElementById('kill-modal').style.display = 'none';
     showToast(`Liquidation error: ${e.message}`, 'error');
+  } finally {
+    if (killBtn) {
+      killBtn.disabled = false;
+      killBtn.innerHTML = '<i data-lucide="octagon-x"></i> Confirm Close All';
+      lucide.createIcons();
+    }
   }
 });
 

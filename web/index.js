@@ -1,19 +1,446 @@
 /* ══════════════════════════════════════════════════════════════
-   AegisAlpha v3 — Full Interactive Dashboard Engine
+   AegisAlpha v3 — Quantitative Terminal & Payoff Engine
    ══════════════════════════════════════════════════════════════ */
 let payoffChart = null;
 let currentSymbol = 'SPY';
-let currentStrategy = 'Bull Call Spread';
+let currentStrategyKey = 'BULL_CALL';
+let currentDTE = 30;
 let pendingCloseSymbol = null;
 
-// Preset profiles for watchlist stocks
-const STOCK_PROFILES = {
-  SPY:  { price: 769.28, delta: '+0.40', gamma: '+0.034', theta: '-0.27', vega: '+0.46', iv: '9.34%',  strategy: 'Bull Call Spread', strikes: [750, 755, 760, 765, 770, 773, 778, 785, 790], payoff: [-100, -100, -100, -100, -50, 0, 400, 400, 400] },
-  QQQ:  { price: 520.14, delta: '+0.42', gamma: '+0.028', theta: '-0.31', vega: '+0.52', iv: '14.20%', strategy: 'Bull Call Spread', strikes: [505, 510, 515, 520, 525, 530, 535, 540, 545], payoff: [-120, -120, -120, -60, 0, 180, 380, 380, 380] },
-  NVDA: { price: 132.80, delta: '+0.38', gamma: '+0.065', theta: '-0.45', vega: '+0.68', iv: '42.80%', strategy: 'Bull Call Spread', strikes: [120, 125, 130, 133, 135, 140, 145, 150, 155], payoff: [-80, -80, -80, -20, 40, 220, 320, 320, 320] },
-  AAPL: { price: 232.10, delta: '-0.35', gamma: '+0.022', theta: '-0.18', vega: '+0.38', iv: '18.60%', strategy: 'Bear Put Spread',  strikes: [220, 225, 228, 230, 232, 235, 240, 245, 250], payoff: [250, 250, 200, 100, 0, -90, -90, -90, -90] },
-  TSLA: { price: 214.50, delta: '+0.45', gamma: '+0.048', theta: '-0.52', vega: '+0.74', iv: '55.10%', strategy: 'Bull Call Spread', strikes: [195, 200, 205, 210, 215, 220, 225, 230, 235], payoff: [-150, -150, -150, -50, 50, 350, 450, 450, 450] },
-  MSFT: { price: 448.20, delta: '+0.32', gamma: '+0.019', theta: '-0.22', vega: '+0.41', iv: '16.40%', strategy: 'Bull Call Spread', strikes: [430, 435, 440, 445, 448, 455, 460, 465, 470], payoff: [-110, -110, -110, -30, 0, 290, 390, 390, 390] },
+// Multi-strategy quantitative profiles
+const STOCK_DATA = {
+  SPY: {
+    price: 769.28,
+    trend: 'Mild Bullish (+0.82%)',
+    strategies: {
+      BULL_CALL: {
+        name: 'Bull Call Spread',
+        strikes: [750, 755, 760, 765, 770, 772.5, 778, 785, 790],
+        payoff: [-100, -100, -100, -100, -50, 0, 400, 400, 400],
+        maxProfit: 400,
+        maxLoss: -100,
+        breakeven: '$772.50',
+        beDist: '+0.42% to Spot',
+        rr: '1 : 4.00',
+        pop: '68.4%',
+        maxRoi: '+400% ROI',
+        delta: '+0.40',
+        gamma: '+0.034',
+        theta: '-$0.27',
+        vega: '+$0.46',
+        iv: '9.34%',
+        ivRank: 42,
+        deltaBar: 70,
+        gammaBar: 55,
+        thetaBar: 35,
+        vegaBar: 62
+      },
+      BEAR_PUT: {
+        name: 'Bear Put Spread',
+        strikes: [750, 755, 760, 765, 767.5, 770, 775, 780, 790],
+        payoff: [350, 350, 350, 150, 0, -150, -150, -150, -150],
+        maxProfit: 350,
+        maxLoss: -150,
+        breakeven: '$767.50',
+        beDist: '-0.23% to Spot',
+        rr: '1 : 2.33',
+        pop: '54.2%',
+        maxRoi: '+233% ROI',
+        delta: '-0.38',
+        gamma: '+0.029',
+        theta: '-$0.22',
+        vega: '+$0.41',
+        iv: '9.34%',
+        ivRank: 42,
+        deltaBar: 40,
+        gammaBar: 45,
+        thetaBar: 28,
+        vegaBar: 50
+      },
+      IRON_CONDOR: {
+        name: 'Iron Condor',
+        strikes: [745, 750, 755, 765, 770, 775, 785, 790, 795],
+        payoff: [-300, -300, 0, 180, 180, 180, 0, -300, -300],
+        maxProfit: 180,
+        maxLoss: -300,
+        breakeven: '$755 / $785',
+        beDist: '±1.95% Range',
+        rr: '1 : 0.60',
+        pop: '78.5%',
+        maxRoi: '+60% ROI',
+        delta: '+0.02',
+        gamma: '+0.012',
+        theta: '+$0.35',
+        vega: '-$0.55',
+        iv: '9.34%',
+        ivRank: 42,
+        deltaBar: 52,
+        gammaBar: 25,
+        thetaBar: 65,
+        vegaBar: 75
+      }
+    }
+  },
+  QQQ: {
+    price: 520.14,
+    trend: 'Bullish (+1.14%)',
+    strategies: {
+      BULL_CALL: {
+        name: 'Bull Call Spread',
+        strikes: [500, 505, 510, 515, 520, 523, 530, 535, 540],
+        payoff: [-120, -120, -120, -120, -40, 0, 380, 380, 380],
+        maxProfit: 380,
+        maxLoss: -120,
+        breakeven: '$523.00',
+        beDist: '+0.55% to Spot',
+        rr: '1 : 3.16',
+        pop: '65.1%',
+        maxRoi: '+316% ROI',
+        delta: '+0.42',
+        gamma: '+0.028',
+        theta: '-$0.31',
+        vega: '+$0.52',
+        iv: '14.20%',
+        ivRank: 48,
+        deltaBar: 72,
+        gammaBar: 48,
+        thetaBar: 40,
+        vegaBar: 68
+      },
+      BEAR_PUT: {
+        name: 'Bear Put Spread',
+        strikes: [500, 505, 510, 517, 520, 525, 530, 535, 540],
+        payoff: [320, 320, 320, 0, -140, -140, -140, -140, -140],
+        maxProfit: 320,
+        maxLoss: -140,
+        breakeven: '$517.00',
+        beDist: '-0.60% to Spot',
+        rr: '1 : 2.28',
+        pop: '51.8%',
+        maxRoi: '+228% ROI',
+        delta: '-0.36',
+        gamma: '+0.025',
+        theta: '-$0.28',
+        vega: '+$0.48',
+        iv: '14.20%',
+        ivRank: 48,
+        deltaBar: 38,
+        gammaBar: 42,
+        thetaBar: 36,
+        vegaBar: 58
+      },
+      IRON_CONDOR: {
+        name: 'Iron Condor',
+        strikes: [495, 505, 510, 518, 520, 525, 532, 540, 545],
+        payoff: [-250, -250, 0, 160, 160, 160, 0, -250, -250],
+        maxProfit: 160,
+        maxLoss: -250,
+        breakeven: '$510 / $532',
+        beDist: '±2.10% Range',
+        rr: '1 : 0.64',
+        pop: '76.2%',
+        maxRoi: '+64% ROI',
+        delta: '+0.03',
+        gamma: '+0.015',
+        theta: '+$0.42',
+        vega: '-$0.61',
+        iv: '14.20%',
+        ivRank: 48,
+        deltaBar: 53,
+        gammaBar: 30,
+        thetaBar: 70,
+        vegaBar: 80
+      }
+    }
+  },
+  NVDA: {
+    price: 132.80,
+    trend: 'High Beta (+2.45%)',
+    strategies: {
+      BULL_CALL: {
+        name: 'Bull Call Spread',
+        strikes: [115, 120, 125, 130, 133.5, 135, 140, 145, 150],
+        payoff: [-90, -90, -90, -90, 0, 120, 310, 310, 310],
+        maxProfit: 310,
+        maxLoss: -90,
+        breakeven: '$133.50',
+        beDist: '+0.53% to Spot',
+        rr: '1 : 3.44',
+        pop: '62.8%',
+        maxRoi: '+344% ROI',
+        delta: '+0.38',
+        gamma: '+0.065',
+        theta: '-$0.45',
+        vega: '+$0.68',
+        iv: '42.80%',
+        ivRank: 65,
+        deltaBar: 68,
+        gammaBar: 85,
+        thetaBar: 60,
+        vegaBar: 88
+      },
+      BEAR_PUT: {
+        name: 'Bear Put Spread',
+        strikes: [115, 120, 125, 131, 133, 135, 140, 145, 150],
+        payoff: [280, 280, 280, 0, -110, -110, -110, -110, -110],
+        maxProfit: 280,
+        maxLoss: -110,
+        breakeven: '$131.00',
+        beDist: '-1.35% to Spot',
+        rr: '1 : 2.54',
+        pop: '55.0%',
+        maxRoi: '+254% ROI',
+        delta: '-0.41',
+        gamma: '+0.058',
+        theta: '-$0.39',
+        vega: '+$0.62',
+        iv: '42.80%',
+        ivRank: 65,
+        deltaBar: 35,
+        gammaBar: 75,
+        thetaBar: 52,
+        vegaBar: 78
+      },
+      IRON_CONDOR: {
+        name: 'Iron Condor',
+        strikes: [115, 122, 125, 130, 133, 136, 142, 145, 150],
+        payoff: [-220, -220, 0, 140, 140, 140, 0, -220, -220],
+        maxProfit: 140,
+        maxLoss: -220,
+        breakeven: '$125 / $142',
+        beDist: '±6.00% Range',
+        rr: '1 : 0.63',
+        pop: '74.0%',
+        maxRoi: '+63% ROI',
+        delta: '-0.01',
+        gamma: '+0.022',
+        theta: '+$0.58',
+        vega: '-$0.78',
+        iv: '42.80%',
+        ivRank: 65,
+        deltaBar: 49,
+        gammaBar: 40,
+        thetaBar: 82,
+        vegaBar: 92
+      }
+    }
+  },
+  AAPL: {
+    price: 232.10,
+    trend: 'Pullback (-0.35%)',
+    strategies: {
+      BEAR_PUT: {
+        name: 'Bear Put Spread',
+        strikes: [215, 220, 225, 230, 231.2, 235, 240, 245, 250],
+        payoff: [260, 260, 260, 120, 0, -90, -90, -90, -90],
+        maxProfit: 260,
+        maxLoss: -90,
+        breakeven: '$231.20',
+        beDist: '-0.38% to Spot',
+        rr: '1 : 2.88',
+        pop: '58.6%',
+        maxRoi: '+288% ROI',
+        delta: '-0.35',
+        gamma: '+0.022',
+        theta: '-$0.18',
+        vega: '+$0.38',
+        iv: '18.60%',
+        ivRank: 35,
+        deltaBar: 42,
+        gammaBar: 38,
+        thetaBar: 24,
+        vegaBar: 48
+      },
+      BULL_CALL: {
+        name: 'Bull Call Spread',
+        strikes: [215, 220, 225, 230, 233.5, 235, 240, 245, 250],
+        payoff: [-85, -85, -85, -85, 0, 110, 315, 315, 315],
+        maxProfit: 315,
+        maxLoss: -85,
+        breakeven: '$233.50',
+        beDist: '+0.60% to Spot',
+        rr: '1 : 3.70',
+        pop: '61.2%',
+        maxRoi: '+370% ROI',
+        delta: '+0.33',
+        gamma: '+0.020',
+        theta: '-$0.19',
+        vega: '+$0.36',
+        iv: '18.60%',
+        ivRank: 35,
+        deltaBar: 63,
+        gammaBar: 35,
+        thetaBar: 26,
+        vegaBar: 45
+      },
+      IRON_CONDOR: {
+        name: 'Iron Condor',
+        strikes: [215, 222, 225, 230, 232, 235, 238, 242, 250],
+        payoff: [-200, -200, 0, 120, 120, 120, 0, -200, -200],
+        maxProfit: 120,
+        maxLoss: -200,
+        breakeven: '$225 / $238',
+        beDist: '±2.80% Range',
+        rr: '1 : 0.60',
+        pop: '79.2%',
+        maxRoi: '+60% ROI',
+        delta: '+0.01',
+        gamma: '+0.011',
+        theta: '+$0.28',
+        vega: '-$0.42',
+        iv: '18.60%',
+        ivRank: 35,
+        deltaBar: 51,
+        gammaBar: 20,
+        thetaBar: 55,
+        vegaBar: 60
+      }
+    }
+  },
+  TSLA: {
+    price: 214.50,
+    trend: 'High Volatility (+1.90%)',
+    strategies: {
+      IRON_CONDOR: {
+        name: 'Iron Condor',
+        strikes: [185, 195, 200, 210, 215, 220, 228, 235, 245],
+        payoff: [-260, -260, 0, 190, 190, 190, 0, -260, -260],
+        maxProfit: 190,
+        maxLoss: -260,
+        breakeven: '$200 / $228',
+        beDist: '±6.50% Range',
+        rr: '1 : 0.73',
+        pop: '77.0%',
+        maxRoi: '+73% ROI',
+        delta: '+0.02',
+        gamma: '+0.025',
+        theta: '+$0.62',
+        vega: '-$0.85',
+        iv: '55.10%',
+        ivRank: 72,
+        deltaBar: 52,
+        gammaBar: 45,
+        thetaBar: 88,
+        vegaBar: 95
+      },
+      BULL_CALL: {
+        name: 'Bull Call Spread',
+        strikes: [185, 195, 205, 210, 217, 220, 230, 235, 245],
+        payoff: [-140, -140, -140, -140, 0, 160, 460, 460, 460],
+        maxProfit: 460,
+        maxLoss: -140,
+        breakeven: '$217.00',
+        beDist: '+1.16% to Spot',
+        rr: '1 : 3.28',
+        pop: '64.5%',
+        maxRoi: '+328% ROI',
+        delta: '+0.45',
+        gamma: '+0.048',
+        theta: '-$0.52',
+        vega: '+$0.74',
+        iv: '55.10%',
+        ivRank: 72,
+        deltaBar: 75,
+        gammaBar: 65,
+        thetaBar: 68,
+        vegaBar: 90
+      },
+      BEAR_PUT: {
+        name: 'Bear Put Spread',
+        strikes: [185, 195, 205, 212, 215, 220, 230, 235, 245],
+        payoff: [380, 380, 380, 0, -160, -160, -160, -160, -160],
+        maxProfit: 380,
+        maxLoss: -160,
+        breakeven: '$212.00',
+        beDist: '-1.15% to Spot',
+        rr: '1 : 2.37',
+        pop: '53.8%',
+        maxRoi: '+237% ROI',
+        delta: '-0.42',
+        gamma: '+0.045',
+        theta: '-$0.48',
+        vega: '+$0.69',
+        iv: '55.10%',
+        ivRank: 72,
+        deltaBar: 32,
+        gammaBar: 60,
+        thetaBar: 62,
+        vegaBar: 85
+      }
+    }
+  },
+  MSFT: {
+    price: 448.20,
+    trend: 'Steady Trend (+0.64%)',
+    strategies: {
+      BULL_CALL: {
+        name: 'Bull Call Spread',
+        strikes: [425, 435, 440, 445, 449.5, 455, 460, 465, 475],
+        payoff: [-110, -110, -110, -110, 0, 210, 390, 390, 390],
+        maxProfit: 390,
+        maxLoss: -110,
+        breakeven: '$449.50',
+        beDist: '+0.29% to Spot',
+        rr: '1 : 3.54',
+        pop: '67.0%',
+        maxRoi: '+354% ROI',
+        delta: '+0.32',
+        gamma: '+0.019',
+        theta: '-$0.22',
+        vega: '+$0.41',
+        iv: '16.40%',
+        ivRank: 38,
+        deltaBar: 62,
+        gammaBar: 32,
+        thetaBar: 30,
+        vegaBar: 52
+      },
+      BEAR_PUT: {
+        name: 'Bear Put Spread',
+        strikes: [425, 435, 440, 447, 448, 455, 460, 465, 475],
+        payoff: [310, 310, 310, 0, -120, -120, -120, -120, -120],
+        maxProfit: 310,
+        maxLoss: -120,
+        breakeven: '$447.00',
+        beDist: '-0.27% to Spot',
+        rr: '1 : 2.58',
+        pop: '52.4%',
+        maxRoi: '+258% ROI',
+        delta: '-0.30',
+        gamma: '+0.018',
+        theta: '-$0.20',
+        vega: '+$0.39',
+        iv: '16.40%',
+        ivRank: 38,
+        deltaBar: 45,
+        gammaBar: 30,
+        thetaBar: 28,
+        vegaBar: 50
+      },
+      IRON_CONDOR: {
+        name: 'Iron Condor',
+        strikes: [425, 438, 442, 447, 448, 452, 456, 462, 475],
+        payoff: [-220, -220, 0, 150, 150, 150, 0, -220, -220],
+        maxProfit: 150,
+        maxLoss: -220,
+        breakeven: '$442 / $456',
+        beDist: '±1.75% Range',
+        rr: '1 : 0.68',
+        pop: '78.0%',
+        maxRoi: '+68% ROI',
+        delta: '+0.01',
+        gamma: '+0.010',
+        theta: '+$0.31',
+        vega: '-$0.48',
+        iv: '16.40%',
+        ivRank: 38,
+        deltaBar: 51,
+        gammaBar: 18,
+        thetaBar: 60,
+        vegaBar: 65
+      }
+    }
+  }
 };
 
 /* ── TOAST NOTIFICATIONS ── */
@@ -338,34 +765,116 @@ async function fetchLogs() {
   }
 }
 
-/* ── PAYOFF CHART ── */
+/* ── QUANTITATIVE PAYOFF ENGINE ── */
+function getActiveProfile() {
+  const stock = STOCK_DATA[currentSymbol] || STOCK_DATA.SPY;
+  const strat = stock.strategies[currentStrategyKey] || stock.strategies.BULL_CALL;
+  return { stock, strat };
+}
+
+function updatePayoffKPIs() {
+  const { stock, strat } = getActiveProfile();
+
+  // 1. KPI Strip
+  const pProfit = document.getElementById('pm-max-profit');
+  if (pProfit) pProfit.textContent = `+$${strat.maxProfit.toFixed(2)}`;
+  const pRoi = document.getElementById('pm-max-roi');
+  if (pRoi) pRoi.textContent = strat.maxRoi;
+
+  const pLoss = document.getElementById('pm-max-loss');
+  if (pLoss) pLoss.textContent = `-$${Math.abs(strat.maxLoss).toFixed(2)}`;
+
+  const pBe = document.getElementById('pm-breakeven');
+  if (pBe) pBe.textContent = strat.breakeven;
+  const pBeDist = document.getElementById('pm-be-dist');
+  if (pBeDist) pBeDist.textContent = strat.beDist;
+
+  const pRr = document.getElementById('pm-rr');
+  if (pRr) pRr.textContent = strat.rr;
+
+  const pPop = document.getElementById('pm-pop');
+  if (pPop) pPop.textContent = strat.pop;
+
+  const pSpot = document.getElementById('pm-spot');
+  if (pSpot) pSpot.textContent = `$${stock.price.toFixed(2)}`;
+  const pSpotTrend = document.getElementById('pm-spot-trend');
+  if (pSpotTrend) pSpotTrend.textContent = stock.trend;
+
+  // 2. Greeks Row
+  const dEl = document.getElementById('val-delta');
+  if (dEl) dEl.textContent = strat.delta;
+  const dBar = document.getElementById('bar-delta');
+  if (dBar) dBar.style.width = `${strat.deltaBar || 50}%`;
+
+  const gEl = document.getElementById('val-gamma');
+  if (gEl) gEl.textContent = strat.gamma;
+  const gBar = document.getElementById('bar-gamma');
+  if (gBar) gBar.style.width = `${strat.gammaBar || 40}%`;
+
+  const tEl = document.getElementById('val-theta');
+  if (tEl) tEl.textContent = strat.theta;
+  const tBar = document.getElementById('bar-theta');
+  if (tBar) tBar.style.width = `${strat.thetaBar || 35}%`;
+
+  const vEl = document.getElementById('val-vega');
+  if (vEl) vEl.textContent = strat.vega;
+  const vBar = document.getElementById('bar-vega');
+  if (vBar) vBar.style.width = `${strat.vegaBar || 60}%`;
+
+  const ivEl = document.getElementById('iv-val');
+  if (ivEl) ivEl.textContent = strat.iv;
+  const ivBar = document.getElementById('bar-iv');
+  if (ivBar) ivBar.style.width = `${strat.ivRank || 42}%`;
+
+  // 3. Strategy Buttons State
+  document.querySelectorAll('.pss-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.strat === currentStrategyKey);
+  });
+}
+
 function initPayoffChart() {
   const canvas = document.getElementById('payoffChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 220);
-  grad.addColorStop(0, 'rgba(0,212,170,0.22)');
-  grad.addColorStop(1, 'rgba(0,212,170,0.0)');
 
-  const prof = STOCK_PROFILES[currentSymbol] || STOCK_PROFILES.SPY;
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 230);
+  grad.addColorStop(0, 'rgba(0,212,170,0.28)');
+  grad.addColorStop(0.5, 'rgba(0,212,170,0.06)');
+  grad.addColorStop(1, 'rgba(246,70,93,0.12)');
+
+  const { strat } = getActiveProfile();
+
   payoffChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: prof.strikes,
-      datasets: [{
-        label: 'Payoff ($)',
-        data: prof.payoff,
-        borderColor: '#00D4AA',
-        backgroundColor: grad,
-        borderWidth: 2.5,
-        fill: true,
-        tension: 0.35,
-        pointBackgroundColor: '#00D4AA',
-        pointBorderColor: '#151920',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6
-      }]
+      labels: strat.strikes.map(s => typeof s === 'number' ? `$${s}` : s),
+      datasets: [
+        {
+          label: 'Payoff ($)',
+          data: strat.payoff,
+          borderColor: '#00D4AA',
+          backgroundColor: grad,
+          borderWidth: 2.8,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#00D4AA',
+          pointBorderColor: '#0B0E11',
+          pointBorderWidth: 2,
+          pointRadius: 4.5,
+          pointHoverRadius: 7,
+          pointHoverBackgroundColor: '#FFFFFF',
+          pointHoverBorderColor: '#00D4AA'
+        },
+        {
+          label: 'Breakeven Zero',
+          data: strat.strikes.map(() => 0),
+          borderColor: 'rgba(255,255,255,0.15)',
+          borderWidth: 1.5,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -374,106 +883,101 @@ function initPayoffChart() {
       scales: {
         x: {
           grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-          ticks: { color: '#5E6673', font: { family: 'Inter', size: 11, weight: '500' } }
+          ticks: { color: '#848E9C', font: { family: 'JetBrains Mono', size: 10, weight: '600' } }
         },
         y: {
-          grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-          ticks: { color: '#5E6673', font: { family: 'Inter', size: 11, weight: '500' }, callback: v => '$' + v }
+          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+          ticks: {
+            color: '#848E9C',
+            font: { family: 'JetBrains Mono', size: 10, weight: '600' },
+            callback: v => (v >= 0 ? '+$' : '-$') + Math.abs(v)
+          }
         }
       },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#1A1F28',
-          borderColor: 'rgba(255,255,255,0.1)',
+          backgroundColor: '#12161C',
+          borderColor: 'rgba(0,212,170,0.3)',
           borderWidth: 1,
-          titleColor: '#EAECEF',
-          bodyColor: '#848E9C',
-          titleFont: { family: 'Inter', weight: '700' },
-          bodyFont: { family: 'JetBrains Mono' },
+          titleColor: '#FFFFFF',
+          bodyColor: '#A0AEC0',
+          titleFont: { family: 'Inter', weight: '700', size: 12 },
+          bodyFont: { family: 'JetBrains Mono', size: 11 },
           padding: 10,
-          cornerRadius: 8,
-          displayColors: false
+          cornerRadius: 6,
+          displayColors: false,
+          callbacks: {
+            title: items => `Strike Price: ${items[0].label}`,
+            label: item => {
+              if (item.datasetIndex === 1) return null;
+              const val = item.raw;
+              const roi = ((val / 100) * 100).toFixed(0);
+              const zone = val > 0 ? '✅ Profit Zone' : (val < 0 ? '❌ Loss Capped' : '⚖️ Breakeven Spot');
+              return [
+                `Estimated P&L: ${val >= 0 ? '+' : ''}$${val.toFixed(2)} (${roi}% ROI)`,
+                `Status: ${zone}`
+              ];
+            }
+          }
         }
       }
     }
   });
+
+  updatePayoffKPIs();
 }
 
-function updateChartForSymbol(sym) {
-  const prof = STOCK_PROFILES[sym] || STOCK_PROFILES.SPY;
+function updatePayoffChart() {
   if (!payoffChart) return;
-  payoffChart.data.labels = prof.strikes;
-  payoffChart.data.datasets[0].data = prof.payoff;
+  const { strat } = getActiveProfile();
+
+  payoffChart.data.labels = strat.strikes.map(s => typeof s === 'number' ? `$${s}` : s);
+  payoffChart.data.datasets[0].data = strat.payoff;
+  payoffChart.data.datasets[1].data = strat.strikes.map(() => 0);
   payoffChart.update();
+  updatePayoffKPIs();
 }
+
+// Strategy switcher buttons click handler
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.pss-btn');
+  if (btn && btn.dataset.strat) {
+    currentStrategyKey = btn.dataset.strat;
+    updatePayoffChart();
+    showToast(`Switched strategy: ${btn.textContent.trim()}`);
+  }
+
+  const dteBtn = e.target.closest('.pdte-btn');
+  if (dteBtn && dteBtn.dataset.dte) {
+    document.querySelectorAll('.pdte-btn').forEach(b => b.classList.remove('active'));
+    dteBtn.classList.add('active');
+    currentDTE = parseInt(dteBtn.dataset.dte);
+    showToast(`DTE Horizon set to: ${currentDTE} Days`);
+  }
+});
 
 /* ── SWITCH ACTIVE STOCK (WATCHLIST CLICK) ── */
 function selectStock(sym) {
   currentSymbol = sym;
-  const prof = STOCK_PROFILES[sym];
-  if (!prof) return;
+  const stock = STOCK_DATA[sym];
+  if (!stock) return;
 
   // 1. Update active card in watchlist
   document.querySelectorAll('.wcard').forEach(card => {
-    if (card.dataset.symbol === sym) {
-      card.classList.add('active');
-    } else {
-      card.classList.remove('active');
-    }
+    card.classList.toggle('active', card.dataset.symbol === sym);
   });
 
-  // 2. Update Greeks Row
-  const dEl = document.getElementById('val-delta');
-  if (dEl) dEl.textContent = prof.delta;
-  const gEl = document.getElementById('val-gamma');
-  if (gEl) gEl.textContent = prof.gamma;
-  const tEl = document.getElementById('val-theta');
-  if (tEl) tEl.textContent = prof.theta;
-  const vEl = document.getElementById('val-vega');
-  if (vEl) vEl.textContent = prof.vega;
-  const ivEl = document.getElementById('iv-val');
-  if (ivEl) ivEl.textContent = prof.iv;
+  // 2. Refresh Payoff Chart & KPIs
+  updatePayoffChart();
 
-  // 3. Update Strategy Badge & Chart
-  currentStrategy = prof.strategy;
-  const badge = document.getElementById('current-strategy-badge');
-  if (badge) badge.innerHTML = `<span class="stag-d"></span>${prof.strategy}`;
-  updateChartForSymbol(sym);
-
-  // 4. Update Manual Trade Input & Auto-load Chain
+  // 3. Update Manual Trade Input & Auto-load Chain
   const tradeInput = document.getElementById('trade-symbol');
   if (tradeInput) tradeInput.value = sym;
   loadOptionChain(sym);
 
-  showToast(`Selected ${sym} ($${prof.price}) — ${prof.strategy}`);
+  showToast(`Selected ${sym} ($${stock.price})`);
 }
-
-/* ── STRATEGY BADGE TOGGLE ── */
-document.getElementById('current-strategy-badge')?.addEventListener('click', () => {
-  const strategies = ['Bull Call Spread', 'Bear Put Spread', 'Iron Condor', 'Long Straddle'];
-  let idx = strategies.indexOf(currentStrategy);
-  idx = (idx + 1) % strategies.length;
-  currentStrategy = strategies[idx];
-
-  const badge = document.getElementById('current-strategy-badge');
-  if (badge) badge.innerHTML = `<span class="stag-d"></span>${currentStrategy}`;
-
-  // Alter payoff curve based on selected strategy
-  if (payoffChart) {
-    if (currentStrategy === 'Bull Call Spread') {
-      payoffChart.data.datasets[0].data = [-100, -100, -100, -50, 0, 200, 400, 400, 400];
-    } else if (currentStrategy === 'Bear Put Spread') {
-      payoffChart.data.datasets[0].data = [400, 400, 400, 200, 0, -50, -100, -100, -100];
-    } else if (currentStrategy === 'Iron Condor') {
-      payoffChart.data.datasets[0].data = [-150, -150, 150, 150, 150, 150, 150, -150, -150];
-    } else {
-      payoffChart.data.datasets[0].data = [350, 200, 80, 0, -120, 0, 80, 200, 350];
-    }
-    payoffChart.update();
-  }
-  showToast(`Payoff strategy switched to: ${currentStrategy}`);
-});
 
 /* ── OPTION CHAIN LOADER ── */
 async function loadOptionChain(sym) {

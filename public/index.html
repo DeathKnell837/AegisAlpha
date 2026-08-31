@@ -141,22 +141,100 @@
           </div>
         </section>
 
-        <!-- HERO CHART -->
+        <!-- HERO CHART (INSTITUTIONAL PAYOFF ENGINE) -->
         <section class="card card-chart">
-          <div class="card-hd">
-            <div><h2 class="card-t">Options Payoff Curve</h2><span class="card-st">Defined-risk P&L across strike horizons</span></div>
-            <div class="stag" id="current-strategy-badge"><span class="stag-d"></span>Bull Call Spread</div>
+          <div class="card-hd payoff-hd">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <h2 class="card-t">Options Payoff Curve</h2>
+                <span class="payoff-live-chip"><span class="stag-d"></span>LIVE QUANT ENGINE</span>
+              </div>
+              <span class="card-st">Defined-risk multi-leg P&amp;L surface across strike horizons</span>
+            </div>
+            <div class="payoff-controls">
+              <div class="payoff-strat-selector">
+                <button class="pss-btn active" data-strat="BULL_CALL">Bull Call</button>
+                <button class="pss-btn" data-strat="BEAR_PUT">Bear Put</button>
+                <button class="pss-btn" data-strat="IRON_CONDOR">Iron Condor</button>
+              </div>
+              <div class="payoff-dte-selector">
+                <button class="pdte-btn" data-dte="7">7D</button>
+                <button class="pdte-btn" data-dte="14">14D</button>
+                <button class="pdte-btn active" data-dte="30">30D</button>
+                <button class="pdte-btn" data-dte="45">45D</button>
+              </div>
+            </div>
           </div>
+
+          <!-- PAYOFF METRICS STRIP -->
+          <div class="payoff-kpi-strip">
+            <div class="pkpi-cell">
+              <span class="pkpi-k">Max Profit</span>
+              <span class="pkpi-v pos" id="pm-max-profit">+$400.00</span>
+              <span class="pkpi-sub" id="pm-max-roi">+400% ROI</span>
+            </div>
+            <div class="pkpi-cell">
+              <span class="pkpi-k">Max Risk (Debit)</span>
+              <span class="pkpi-v neg" id="pm-max-loss">-$100.00</span>
+              <span class="pkpi-sub">Capped (Gate 1)</span>
+            </div>
+            <div class="pkpi-cell">
+              <span class="pkpi-k">Breakeven</span>
+              <span class="pkpi-v" id="pm-breakeven">$772.50</span>
+              <span class="pkpi-sub" id="pm-be-dist">+0.42% to Spot</span>
+            </div>
+            <div class="pkpi-cell">
+              <span class="pkpi-k">Risk : Reward</span>
+              <span class="pkpi-v hi" id="pm-rr">1 : 4.00</span>
+              <span class="pkpi-sub">Convex Asymmetry</span>
+            </div>
+            <div class="pkpi-cell">
+              <span class="pkpi-k">Win Probability (PoP)</span>
+              <span class="pkpi-v pos" id="pm-pop">68.4%</span>
+              <span class="pkpi-sub">1.2σ Confidence</span>
+            </div>
+            <div class="pkpi-cell">
+              <span class="pkpi-k">Spot Price</span>
+              <span class="pkpi-v pur" id="pm-spot">$769.28</span>
+              <span class="pkpi-sub" id="pm-spot-trend">Mild Bullish</span>
+            </div>
+          </div>
+
           <div class="chart-box"><canvas id="payoffChart"></canvas></div>
         </section>
 
-        <!-- GREEKS -->
+        <!-- GREEKS & VOLATILITY GAUGES -->
         <section class="greeks-row">
-          <div class="gcard"><span class="gc-l">Delta</span><span class="gc-v pos" id="val-delta">+0.40</span><span class="gc-d">Directional Bias</span></div>
-          <div class="gcard"><span class="gc-l">Gamma</span><span class="gc-v hi" id="val-gamma">+0.034</span><span class="gc-d">Convexity Speed</span></div>
-          <div class="gcard"><span class="gc-l">Theta</span><span class="gc-v neg" id="val-theta">-0.27</span><span class="gc-d">Time Decay/Day</span></div>
-          <div class="gcard"><span class="gc-l">Vega</span><span class="gc-v pur" id="val-vega">+0.46</span><span class="gc-d">IV Sensitivity</span></div>
-          <div class="gcard"><span class="gc-l">Implied Vol</span><span class="gc-v hi" id="iv-val">9.34%</span><div class="gc-bar"><div class="gc-fill" style="width:42%"></div></div></div>
+          <div class="gcard">
+            <div class="gc-head"><span class="gc-l">Delta</span><span class="gc-tag pos">Directional</span></div>
+            <span class="gc-v pos" id="val-delta">+0.40</span>
+            <span class="gc-d">+$40.00 / $1.00 Move</span>
+            <div class="gc-bar"><div class="gc-fill pos" id="bar-delta" style="width:70%"></div></div>
+          </div>
+          <div class="gcard">
+            <div class="gc-head"><span class="gc-l">Gamma</span><span class="gc-tag hi">Convexity</span></div>
+            <span class="gc-v hi" id="val-gamma">+0.034</span>
+            <span class="gc-d">Δ Speed / $1.00 Move</span>
+            <div class="gc-bar"><div class="gc-fill hi" id="bar-gamma" style="width:55%"></div></div>
+          </div>
+          <div class="gcard">
+            <div class="gc-head"><span class="gc-l">Theta</span><span class="gc-tag neg">Decay</span></div>
+            <span class="gc-v neg" id="val-theta">-$0.27</span>
+            <span class="gc-d">-$27.00 / 24h Time Decay</span>
+            <div class="gc-bar"><div class="gc-fill neg" id="bar-theta" style="width:35%"></div></div>
+          </div>
+          <div class="gcard">
+            <div class="gc-head"><span class="gc-l">Vega</span><span class="gc-tag pur">IV Sens</span></div>
+            <span class="gc-v pur" id="val-vega">+$0.46</span>
+            <span class="gc-d">+$46.00 / 1% IV Spike</span>
+            <div class="gc-bar"><div class="gc-fill pur" id="bar-vega" style="width:62%"></div></div>
+          </div>
+          <div class="gcard">
+            <div class="gc-head"><span class="gc-l">Implied Vol</span><span class="gc-tag hi">IV Rank 42</span></div>
+            <span class="gc-v hi" id="iv-val">9.34%</span>
+            <span class="gc-d">30d Realized: 8.12%</span>
+            <div class="gc-bar"><div class="gc-fill hi" id="bar-iv" style="width:42%"></div></div>
+          </div>
         </section>
 
         <!-- MANUAL TRADE PANEL -->

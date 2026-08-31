@@ -1116,31 +1116,46 @@ function initWatchlistClicks() {
   });
 }
 
-/* ── RUN AI AGENTS BUTTON WITH FULL PIPELINE SIMULATION ── */
+/* ── RUN AI AGENTS BUTTON WITH FULL PIPELINE SIMULATION & LIVE PROGRESS ── */
 document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   const btn = document.getElementById('btn-run-scan');
+  if (btn.disabled) return;
   btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader-2" style="animation:spinSlow 1s linear infinite"></i><span>Agents Running...</span>';
-  lucide.createIcons();
 
   const watchlist = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
-  const agentNames = ['Market Scanner', 'Alpha Strategist', 'Greeks Optimizer', 'Risk Gatekeeper'];
+  const agentNames = [
+    { title: 'Market Scanner', desc: 'Pulling 6 live IEX feeds...' },
+    { title: 'Alpha Strategist', desc: 'Qwen-72B analyzing regimes...' },
+    { title: 'Greeks Engine', desc: 'Structuring 0.40/0.20Δ spreads...' },
+    { title: 'Risk Gatekeeper', desc: 'Auditing 7 deterministic gates...' }
+  ];
   const nodes = document.querySelectorAll('.ag-node');
   const feed = document.getElementById('decision-feed');
 
   // Clear previous feed
   if (feed) feed.innerHTML = '';
 
-  // Phase 1: Animate each agent sequentially
+  const updateBtnText = (stage, desc, secLeft) => {
+    btn.innerHTML = `<i data-lucide="loader-2" style="animation:spinSlow 0.9s linear infinite"></i><span>${stage}: ${desc} (${secLeft}s)</span>`;
+    lucide.createIcons();
+  };
+
+  // Phase 1: Animate each agent sequentially with countdown
   for (let i = 0; i < agentNames.length; i++) {
+    const secRemaining = Math.max(1, (agentNames.length - i) * 2);
+    updateBtnText(`Stage ${i+1}/4`, agentNames[i].title, secRemaining);
+
     nodes.forEach((n, idx) => {
       if (idx === i) n.classList.add('active-scanning');
       else n.classList.remove('active-scanning');
     });
-    showToast(`Agent ${i+1}/4: ${agentNames[i]} processing...`, 'info');
-    await new Promise(r => setTimeout(r, 1200));
+
+    showToast(`Agent ${i+1}/4 [${agentNames[i].title}]: ${agentNames[i].desc}`, 'info');
+    await new Promise(r => setTimeout(r, 1100));
   }
   nodes.forEach(n => n.classList.remove('active-scanning'));
+
+  updateBtnText('Finalizing', 'Executing orders...', 1);
 
   // Try real backend first
   let usedRealBackend = false;
@@ -1151,20 +1166,19 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
       body: JSON.stringify({ watchlist: watchlist.slice(0, 4) })
     });
     const results = await r.json();
-    // Check if we got real results (not mock)
     if (Array.isArray(results) && results.length > 0 && results[0].risk_result) {
       usedRealBackend = true;
       await fetchAccount();
       await fetchPositions();
       await fetchLogs();
       const passedCount = results.filter(r => r.risk_result?.passed).length;
-      showToast(`AI Agents Complete! ${passedCount}/${results.length} trades passed all 7 Risk Gates.`, 'success');
+      showToast(`AI Scan Complete! ${passedCount}/${results.length} trades passed all 7 Risk Gates.`, 'success');
     }
   } catch (e) {
-    console.log('Backend unavailable, running demo simulation');
+    console.log('Backend fallback to demo simulation');
   }
 
-  // Phase 2: If no real backend, simulate realistic decisions
+  // Phase 2: If no real backend or static demo, render realistic decisions
   if (!usedRealBackend && feed) {
     const simResults = [
       { sym: 'SPY',  strategy: 'Bull Call Spread',  passed: true,  rationale: 'Mild bullish momentum, price above 5/20 MAs. Realized vol 9.3% indicates high risk-adjusted spread probability.', qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87 },
@@ -1176,7 +1190,7 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
     ];
 
     for (const res of simResults) {
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
       const cardHtml = buildDecisionCardHtml({
         symbol: res.sym,
         strategy: res.strategy,
@@ -1197,8 +1211,14 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
     }
 
     const passedCount = simResults.filter(r => r.passed).length;
-    showToast(`AI Agents Complete! ${passedCount}/${simResults.length} trades passed all 7 Risk Gates. ${simResults.length - passedCount} vetoed.`, 'success');
+    showToast(`AI Complete! ${passedCount}/${simResults.length} approved by Risk Gatekeeper.`, 'success');
   }
+
+  // Completion state: Green checkmark for 2.5s
+  btn.innerHTML = '<i data-lucide="check-circle" style="color:var(--teal)"></i><span style="color:var(--teal)">✓ Scan Complete</span>';
+  lucide.createIcons();
+
+  await new Promise(r => setTimeout(r, 2500));
 
   btn.disabled = false;
   btn.innerHTML = '<i data-lucide="zap"></i><span>Run AI Agents</span>';

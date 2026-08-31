@@ -256,7 +256,17 @@
         </div>
 
         <div class="card card-feed">
-          <div class="card-hd"><div><h2 class="card-t">Decision Feed</h2><span class="card-st">Live risk audit verdicts</span></div></div>
+          <div class="card-hd">
+            <div>
+              <h2 class="card-t">Decision Feed</h2>
+              <span class="card-st">Live AI Reasoning &amp; Risk Audits</span>
+            </div>
+            <div class="feed-filters">
+              <button class="ff-btn active" data-filter="all" id="ff-all">All <span id="ff-cnt-all" class="ff-pill">0</span></button>
+              <button class="ff-btn ok" data-filter="ok" id="ff-ok">Passed <span id="ff-cnt-ok" class="ff-pill">0</span></button>
+              <button class="ff-btn no" data-filter="no" id="ff-no">Vetoed <span id="ff-cnt-no" class="ff-pill">0</span></button>
+            </div>
+          </div>
           <div id="decision-feed" class="feed-scroll">
             <div class="feed-empty"><i data-lucide="radio"></i><span>Standing by. Launch a scan to see decisions.</span></div>
           </div>

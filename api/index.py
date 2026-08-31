@@ -51,12 +51,24 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data).encode('utf-8'))
 
+    def get_route(self):
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+        route_param = query.get('route', [''])[0].lower()
+        path = parsed.path.lower()
+        headers_info = ' '.join([
+            str(self.headers.get(h, '')) for h in [
+                'x-matched-path', 'x-forwarded-uri', 'x-now-route-matches', 'x-vercel-matched-path'
+            ]
+        ]).lower()
+        return f"{route_param} {path} {headers_info} {self.path.lower()}"
+
     def do_GET(self):
         parsed = urlparse(self.path)
-        path = parsed.path.lower()
+        route = self.get_route()
         desk = get_desk()
 
-        if 'account' in path:
+        if 'account' in route:
             if desk:
                 try:
                     self.send_json_response(desk.alpaca.get_account())
@@ -76,7 +88,7 @@ class handler(BaseHTTPRequestHandler):
             })
             return
 
-        elif 'positions' in path:
+        elif 'positions' in route:
             if desk:
                 try:
                     self.send_json_response(desk.alpaca.get_positions())
@@ -86,7 +98,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([])
             return
 
-        elif 'logs' in path:
+        elif 'logs' in route:
             if desk:
                 try:
                     self.send_json_response([l.model_dump() for l in desk.trade_logs])
@@ -96,7 +108,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([])
             return
 
-        elif 'chain' in path:
+        elif 'chain' in route:
             query = parse_qs(parsed.query)
             sym = query.get('symbol', ['SPY'])[0].upper()
             if desk:
@@ -108,7 +120,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'symbol': sym, 'underlying_price': 769.28, 'trend': 'MILD_BULLISH', 'calls': [], 'puts': []})
             return
 
-        elif 'orders' in path:
+        elif 'orders' in route:
             if desk:
                 try:
                     orders = desk.alpaca.trading_client.get_orders()
@@ -130,7 +142,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([])
             return
 
-        elif 'status' in path:
+        elif 'status' in route:
             desk = get_desk()
             self.send_json_response({
                 'api': 'AegisAlpha Vercel API',
@@ -146,10 +158,10 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
-        path = parsed.path.lower()
+        route = self.get_route()
         desk = get_desk()
 
-        if 'run-scan' in path or 'scan' in path:
+        if 'run-scan' in route or 'scan' in route:
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
             if desk:
@@ -164,7 +176,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([{'status': 'SUCCESS', 'message': 'Scan cycle completed on Vercel'}])
             return
 
-        elif 'kill-switch' in path or 'kill' in path:
+        elif 'kill-switch' in route or 'kill' in route:
             if desk:
                 try:
                     res = desk.alpaca.close_all_positions()
@@ -175,11 +187,11 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'status': 'SUCCESS', 'closed_count': 0})
             return
 
-        elif 'close-position' in path or 'close' in path:
+        elif 'close-position' in route or 'close' in route:
             self.send_json_response({'status': 'CLOSED'})
             return
 
-        elif 'manual-order' in path or 'order' in path:
+        elif 'manual-order' in route or 'order' in route:
             self.send_json_response({'status': 'ACCEPTED', 'order_id': 'vcl-ord-001'})
             return
 

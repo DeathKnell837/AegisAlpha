@@ -1002,14 +1002,21 @@ function renderLivePriceChart() {
   payoffChart.options.scales.y.suggestedMin = minP - pad;
   payoffChart.options.scales.y.suggestedMax = maxP + pad;
 
-  // Clean horizontal, spaced-out X-axis ticks (never rotated or cluttered)
+  // Clean horizontal, spaced-out X-axis ticks (strictly horizontal, zero rotation)
   payoffChart.options.scales.x.ticks = {
     color: '#5E6673',
     font: { family: 'JetBrains Mono', size: 10, weight: '500' },
-    maxTicksLimit: 6,
+    maxTicksLimit: 5,
     autoSkip: true,
     maxRotation: 0,
-    minRotation: 0
+    minRotation: 0,
+    callback: function(val, index) {
+      const total = this.chart.data.labels.length;
+      if (index === 0 || index === Math.floor(total * 0.25) || index === Math.floor(total * 0.5) || index === Math.floor(total * 0.75) || index === total - 1) {
+        return this.getLabelForValue(val);
+      }
+      return '';
+    }
   };
 
   payoffChart.update('none');

@@ -937,7 +937,7 @@ function initLiveHistory() {
     LIVE_HISTORY[s] = [];
     let p = base - (Math.random() * 2 - 1);
     for (let i = 24; i >= 0; i--) {
-      const t = new Date(now - i * 2000).toLocaleTimeString();
+      const t = new Date(now - i * 2000).toLocaleTimeString('en-US', { hour12: false });
       p += (Math.random() - 0.49) * (base * 0.0008);
       LIVE_HISTORY[s].push({ time: t, price: parseFloat(p.toFixed(2)) });
     }
@@ -953,7 +953,7 @@ function startLivePriceTicker() {
     const base = STOCK_DATA[s] ? STOCK_DATA[s].price : 500;
     const step = (Math.random() - 0.485) * (base * 0.0006);
     const newPrice = parseFloat((last.price + step).toFixed(2));
-    const nowTime = new Date().toLocaleTimeString();
+    const nowTime = new Date().toLocaleTimeString('en-US', { hour12: false });
 
     LIVE_HISTORY[s].push({ time: nowTime, price: newPrice });
     if (LIVE_HISTORY[s].length > 30) LIVE_HISTORY[s].shift();
@@ -1001,6 +1001,16 @@ function renderLivePriceChart() {
   payoffChart.options.scales.y.ticks.callback = v => '$' + v.toFixed(2);
   payoffChart.options.scales.y.suggestedMin = minP - pad;
   payoffChart.options.scales.y.suggestedMax = maxP + pad;
+
+  // Clean horizontal, spaced-out X-axis ticks (never rotated or cluttered)
+  payoffChart.options.scales.x.ticks = {
+    color: '#5E6673',
+    font: { family: 'JetBrains Mono', size: 10, weight: '500' },
+    maxTicksLimit: 6,
+    autoSkip: true,
+    maxRotation: 0,
+    minRotation: 0
+  };
 
   payoffChart.update('none');
 }
@@ -1069,7 +1079,14 @@ function initPayoffChart() {
       scales: {
         x: {
           grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-          ticks: { color: '#5E6673', font: { family: 'JetBrains Mono', size: 11, weight: '500' } }
+          ticks: {
+            color: '#5E6673',
+            font: { family: 'JetBrains Mono', size: 10, weight: '500' },
+            maxTicksLimit: 6,
+            autoSkip: true,
+            maxRotation: 0,
+            minRotation: 0
+          }
         },
         y: {
           grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },

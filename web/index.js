@@ -655,8 +655,23 @@ function switchHoldingTab(tab) {
 /* ── CLOSE POSITION MODAL ── */
 function openCloseModal(symbol) {
   pendingCloseSymbol = symbol;
+  const chip = document.getElementById('market-status-chip');
+  const isMarketClosed = chip?.querySelector('.mkt-dot.closed') !== null;
   const text = document.getElementById('close-modal-text');
-  if (text) text.innerHTML = `Are you sure you want to close all positions for <strong>${symbol}</strong> at market price?`;
+  const confirmBtn = document.getElementById('btn-confirm-close');
+
+  if (text) {
+    if (isMarketClosed) {
+      text.innerHTML = `Are you sure you want to close <strong>${symbol}</strong>?<br><br><div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:var(--r2);padding:8px 12px;font-size:0.78rem;color:var(--amber);margin-top:6px"><i data-lucide="clock" style="width:13px;height:13px;display:inline-block;vertical-align:middle;margin-right:4px"></i><strong>NYSE is closed right now.</strong><br>A Limit Close Order will be safely placed on Alpaca to execute automatically at <strong>9:30 PM PHT (Market Open)</strong>.</div>`;
+    } else {
+      text.innerHTML = `Are you sure you want to close all positions for <strong>${symbol}</strong> immediately on the live exchange?`;
+    }
+  }
+
+  if (confirmBtn) {
+    confirmBtn.textContent = isMarketClosed ? 'Queue Close (9:30 PM)' : 'Close Position';
+  }
+
   const modal = document.getElementById('close-modal');
   if (modal) modal.style.display = 'flex';
   lucide.createIcons();
@@ -1549,8 +1564,78 @@ function setTradingMode(mode) {
   }
 }
 
-/* ── AUTO TAKE-PROFIT / HARVEST BUTTON HANDLER ── */
-document.getElementById('btn-harvest-profits')?.addEventListener('click', async () => {
+/* ── AUTO TAKE-PROFIT / HARVEST MODAL & HANDLERS ── */
+async function openHarvestModal() {
+  const chip = document.getElementById('market-status-chip');
+  const isMarketClosed = chip?.querySelector('.mkt-dot.closed') !== null;
+
+  try {
+    const posRes = await fetch('/api/positions');
+    const pos = await posRes.json();
+    const green = Array.isArray(pos) ? pos.filter(p => (p.unrealized_pl || 0) > 0) : [];
+
+    if (green.length === 0) {
+      showToast('All winning positions are already queued, or no active green positions.', 'info');
+      return;
+    }
+
+    const totalProfit = green.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
+    const listEl = document.getElementById('harvest-positions-list');
+    if (listEl) {
+      listEl.innerHTML = green.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <span><strong>${p.symbol}</strong> (${p.qty}x)</span>
+          <span style="color:var(--teal);font-weight:700">+${p.unrealized_pl >= 0 ? '$' + p.unrealized_pl.toFixed(2) : '-$' + Math.abs(p.unrealized_pl).toFixed(2)} (${p.unrealized_plpc.toFixed(2)}%)</span>
+        </div>
+      `).join('') + `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;font-weight:800;color:var(--t1)">
+          <span>Total Profit to Bank:</span>
+          <span style="color:var(--teal);font-size:0.85rem">+$${totalProfit.toFixed(2)}</span>
+        </div>
+      `;
+    }
+
+    const noticeTitle = document.getElementById('harvest-notice-title');
+    const noticeDesc = document.getElementById('harvest-notice-desc');
+    const confirmText = document.getElementById('btn-confirm-harvest-text');
+
+    if (isMarketClosed) {
+      if (noticeTitle) noticeTitle.textContent = '🟡 NYSE is Closed (Opens 9:30 PM PHT)';
+      if (noticeDesc) noticeDesc.textContent = 'Take-Profit orders will be placed as Limit Close orders on Alpaca and will fill the second the market opens at 9:30 PM PHT.';
+      if (confirmText) confirmText.textContent = 'Queue Take-Profit (9:30 PM)';
+    } else {
+      if (noticeTitle) noticeTitle.textContent = '🟢 NYSE LIVE • Market Open';
+      if (noticeDesc) noticeDesc.textContent = 'Orders will execute immediately at market price on the live exchange.';
+      if (confirmText) confirmText.textContent = 'Execute Take-Profit Now';
+    }
+
+    const modal = document.getElementById('harvest-modal');
+    if (modal) modal.style.display = 'flex';
+    lucide.createIcons();
+  } catch (e) {
+    showToast(`Error opening Take-Profit modal: ${e.message}`, 'error');
+  }
+}
+
+document.getElementById('btn-harvest-profits')?.addEventListener('click', openHarvestModal);
+document.getElementById('btn-cancel-harvest')?.addEventListener('click', () => {
+  const modal = document.getElementById('harvest-modal');
+  if (modal) modal.style.display = 'none';
+});
+document.getElementById('btn-cancel-harvest-x')?.addEventListener('click', () => {
+  const modal = document.getElementById('harvest-modal');
+  if (modal) modal.style.display = 'none';
+});
+document.getElementById('harvest-modal')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('harvest-modal').style.display = 'none';
+  }
+});
+
+document.getElementById('btn-confirm-harvest')?.addEventListener('click', async () => {
+  const modal = document.getElementById('harvest-modal');
+  if (modal) modal.style.display = 'none';
+
   const btn = document.getElementById('btn-harvest-profits');
   if (btn) {
     btn.disabled = true;
@@ -1558,7 +1643,7 @@ document.getElementById('btn-harvest-profits')?.addEventListener('click', async 
     lucide.createIcons();
   }
 
-  showToast('Scanning and harvesting all profitable green positions on Alpaca...', 'info');
+  showToast('Submitting Take-Profit orders to Alpaca...', 'info');
 
   try {
     const r = await fetch('/api/harvest-profits', {
@@ -1571,7 +1656,7 @@ document.getElementById('btn-harvest-profits')?.addEventListener('click', async 
     if (d.harvested_count > 0) {
       const isQueued = d.harvested_positions && d.harvested_positions.some(p => p.status === 'QUEUED_FOR_OPEN');
       if (isQueued) {
-        showToast(`✓ Harvest Orders Queued! Placed Limit Close orders for ${d.harvested_count} winning positions (+$${d.total_profit_banked.toFixed(2)}) to fill at 9:30 PM PHT Market Open!`, 'success');
+        showToast(`✓ Take-Profit Orders Queued! Placed Limit Close orders for ${d.harvested_count} winning positions (+$${d.total_profit_banked.toFixed(2)}) to fill at 9:30 PM PHT Market Open!`, 'success');
       } else {
         showToast(`✓ Profit Harvested! Banked +$${d.total_profit_banked.toFixed(2)} cash across ${d.harvested_count} winning positions!`, 'success');
       }

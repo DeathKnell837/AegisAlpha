@@ -496,6 +496,39 @@
     </div>
   </div>
 
+  <!-- TAKE PROFIT / HARVEST MODAL -->
+  <div id="harvest-modal" class="help-overlay" style="display:none">
+    <div class="help-modal modal-sm" style="max-width:480px">
+      <div class="help-header">
+        <h2 style="display:flex;align-items:center;gap:8px;color:var(--teal)"><i data-lucide="zap"></i> Auto Take-Profit Confirmation</h2>
+        <button id="btn-cancel-harvest-x" class="help-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="help-body">
+        <div id="harvest-modal-notice" class="mkt-notice-banner" style="margin-bottom:12px">
+          <i data-lucide="clock" class="mkt-notice-icon"></i>
+          <div class="mkt-notice-content">
+            <strong id="harvest-notice-title">NYSE is Closed (Opens 9:30 PM PHT)</strong>
+            <span id="harvest-notice-desc">Your Take-Profit orders will be safely queued on Alpaca to fill automatically at 9:30 PM PHT Market Open.</span>
+          </div>
+        </div>
+
+        <p style="font-size:0.85rem;color:var(--t1);line-height:1.5" id="harvest-modal-desc">
+          Ready to lock in profit across winning green positions:
+        </p>
+
+        <div id="harvest-positions-list" style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 12px;margin:10px 0;display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;font-family:var(--m);font-size:0.75rem">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">
+          <button id="btn-cancel-harvest" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-harvest" class="btn-scan" style="background:var(--teal);color:#0B0E11;font-weight:800">
+            <i data-lucide="zap"></i><span id="btn-confirm-harvest-text">Queue Take-Profit (9:30 PM)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- KILL SWITCH MODAL -->
   <div id="kill-modal" class="help-overlay" style="display:none">
     <div class="help-modal modal-sm">

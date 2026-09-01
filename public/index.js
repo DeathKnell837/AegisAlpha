@@ -661,12 +661,15 @@ document.getElementById('btn-confirm-close')?.addEventListener('click', async ()
     });
     const d = await r.json();
     hideCloseModal();
-    if (d.status === 'CLOSED' || d.order_id) {
+    if (d.status === 'CLOSED') {
       showToast(`Position for ${sym} closed successfully!`, 'success');
+    } else if (d.status === 'QUEUED_FOR_OPEN' || d.order_id) {
+      showToast(`Order Queued! Limit Close order for ${sym} placed to fill at 9:30 PM PHT Market Open!`, 'success');
     } else {
       showToast(`Close result: ${d.message || d.status || 'Submitted'}`, 'info');
     }
     await fetchPositions();
+    await fetchOrders();
     await fetchAccount();
   } catch (e) {
     hideCloseModal();
@@ -1511,7 +1514,12 @@ document.getElementById('btn-harvest-profits')?.addEventListener('click', async 
     const d = await r.json();
 
     if (d.harvested_count > 0) {
-      showToast(`✓ Profit Harvested! Banked +$${d.total_profit_banked.toFixed(2)} cash across ${d.harvested_count} winning positions!`, 'success');
+      const isQueued = d.harvested_positions && d.harvested_positions.some(p => p.status === 'QUEUED_FOR_OPEN');
+      if (isQueued) {
+        showToast(`✓ Harvest Orders Queued! Placed Limit Close orders for ${d.harvested_count} winning positions (+$${d.total_profit_banked.toFixed(2)}) to fill at 9:30 PM PHT Market Open!`, 'success');
+      } else {
+        showToast(`✓ Profit Harvested! Banked +$${d.total_profit_banked.toFixed(2)} cash across ${d.harvested_count} winning positions!`, 'success');
+      }
     } else {
       showToast('All open positions checked. No active green positions ready for harvest.', 'info');
     }

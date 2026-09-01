@@ -306,11 +306,38 @@ class AlpacaService:
             res = self.trading_client.close_position(symbol)
             return {'symbol': symbol, 'status': 'CLOSED', 'order_id': str(res.id)}
         except Exception as e:
-            return {'symbol': symbol, 'status': 'ERROR', 'message': str(e)}
+            err_str = str(e)
+            if "market hours" in err_str.lower() or "42210000" in err_str:
+                # When market is closed, submit offsetting Limit Order to close at current price
+                try:
+                    pos = [p for p in self.get_positions() if p['symbol'] == symbol]
+                    if pos:
+                        p = pos[0]
+                        side = OrderSide.SELL if p['qty'] > 0 else OrderSide.BUY
+                        close_qty = abs(int(p['qty']))
+                        price = max(0.01, round(float(p.get('current_price', 0.01)), 2))
+                        order = self.place_option_order(symbol, close_qty, side, OrderType.LIMIT, limit_price=price)
+                        return {
+                            'symbol': symbol,
+                            'status': 'QUEUED_FOR_OPEN',
+                            'order_id': order.get('order_id'),
+                            'message': 'Order queued for market open at 9:30 PM PHT'
+                        }
+                except Exception as e2:
+                    return {'symbol': symbol, 'status': 'ERROR', 'message': str(e2)}
+            return {'symbol': symbol, 'status': 'ERROR', 'message': err_str}
 
     def close_all_positions(self) -> List[Dict[str, Any]]:
-        orders = self.trading_client.close_all_positions(cancel_orders=True)
-        return [{'order_id': str(o.id), 'symbol': o.symbol, 'status': str(o.status)} for o in orders]
+        try:
+            orders = self.trading_client.close_all_positions(cancel_orders=True)
+            return [{'order_id': str(o.id), 'symbol': o.symbol, 'status': str(o.status)} for o in orders]
+        except Exception as e:
+            # Fallback to closing positions individually via limit orders if market is closed
+            closed = []
+            for p in self.get_positions():
+                res = self.close_position(p['symbol'])
+                closed.append(res)
+            return closed
 
     def harvest_green_positions(self, min_profit_pct: float = 0.0) -> Dict[str, Any]:
         """Closes all winning/green positions to immediately lock in profits into cash."""
@@ -328,12 +355,13 @@ class AlpacaService:
             pl = p.get('unrealized_pl', 0.0)
             try:
                 res = self.close_position(sym)
-                if res.get('status') == 'CLOSED' or res.get('order_id'):
+                if res.get('status') in ('CLOSED', 'QUEUED_FOR_OPEN') or res.get('order_id'):
                     harvested.append({
                         'symbol': sym,
                         'profit_locked': pl,
                         'profit_pct': p.get('unrealized_plpc', 0.0),
-                        'order_id': res.get('order_id')
+                        'order_id': res.get('order_id'),
+                        'status': res.get('status')
                     })
                     total_profit_banked += pl
             except Exception as e:

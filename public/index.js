@@ -777,31 +777,33 @@ function buildDecisionCardHtml({ symbol, strategy, confidence, passed, rationale
   const numRisk = typeof maxRisk === 'number' ? maxRisk : parseFloat(maxRisk) || 1840;
   const safeRisk = numRisk.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const riskPct = (numRisk / 1000).toFixed(1);
-  const safeSummary = riskSummary || (ok ? 'All 7 Gates Passed' : 'Risk Gate Constraint Veto');
+  const safeSummary = riskSummary || (ok ? '7/7 PASSED' : 'VETOED: Risk Limit');
+  const gateDisplay = ok ? '7/7 PASSED' : (safeSummary.length > 20 ? safeSummary.slice(0, 18) + '...' : safeSummary);
   const m = (mode || currentTradingMode || 'scalp').toLowerCase();
-  const modeTag = m === 'scalp' ? '⚡ SCALP' : (m === 'swing' ? '⚖️ SWING' : '🛡️ SHIELD');
+  const modeName = m === 'scalp' ? 'SCALP' : (m === 'swing' ? 'SWING' : 'SHIELD');
+  const stratName = (strategy || 'SPREAD').replace(/_/g, ' ').toUpperCase();
+  const cleanRationale = (rationale || 'Quantitative volatility regime analysis completed.').replace(/^\[(SCALP|SWING|SHIELD)\]\s*/i, '').trim();
 
   return `
     <div class="df-card ${ok ? 'df-pass' : 'df-veto'}" data-status="${ok ? 'ok' : 'no'}" style="${currentDecisionFilter !== 'all' && (currentDecisionFilter === 'ok' ? !ok : ok) ? 'display:none' : 'display:flex'}">
-      <div class="df-top">
-        <div class="df-left">
-          <span class="df-sym">${symbol}</span>
-          <span class="df-mode-chip ${m}">${modeTag}</span>
-          <span class="df-strat-chip ${stratClass}">${strategy.replace(/_/g, ' ')}</span>
+      <div class="term-bar">
+        <div class="term-tags">
+          <span class="term-sym">${symbol}</span>
+          <span class="term-mode ${m}">[${modeName}]</span>
+          <span class="term-strat ${stratClass}">${stratName}</span>
         </div>
-        <div class="df-right">
-          <span class="df-conf">${confPct}% conf</span>
-          <span class="df-badge ${ok ? 'df-pass' : 'df-veto'}"><i data-lucide="${ok ? 'check' : 'shield-alert'}"></i>${ok ? 'APPROVED' : 'VETOED'}</span>
+        <div class="term-status-wrap">
+          <span class="term-conf">${confPct}%</span>
+          <span class="term-badge ${ok ? 'pass' : 'veto'}">${ok ? 'PASS' : 'VETO'}</span>
         </div>
       </div>
-      <div class="df-rationale">
-        <i data-lucide="brain" class="df-brain-ic"></i>
-        <span>${rationale}</span>
+      <div class="term-log">
+        <span class="term-ai-pfx">&gt; AI:</span><span class="term-ai-text">${cleanRationale}</span>
       </div>
-      <div class="df-metrics">
-        <div class="df-met"><span class="df-met-k">Sizing</span><span class="df-met-v">${safeQty}x contracts</span></div>
-        <div class="df-met"><span class="df-met-k">Max Risk</span><span class="df-met-v hi">$${safeRisk} (${riskPct}%)</span></div>
-        <div class="df-met"><span class="df-met-k">Audit</span><span class="df-met-v ${ok ? 'pos' : 'neg'}" title="${safeSummary}">${safeSummary.length > 22 ? safeSummary.slice(0, 20) + '...' : safeSummary}</span></div>
+      <div class="term-metrics">
+        <div class="term-m"><span class="tk">QTY</span><span class="tv">${safeQty}x</span></div>
+        <div class="term-m"><span class="tk">MAX RISK</span><span class="tv hi">$${safeRisk} (${riskPct}%)</span></div>
+        <div class="term-m"><span class="tk">RISK GATE</span><span class="tv ${ok ? 'pos' : 'neg'}" title="${safeSummary}">${gateDisplay}</span></div>
       </div>
     </div>
   `;
@@ -1364,12 +1366,12 @@ async function executeScanWorkflow(selectedMode) {
   // Populate Decision Feed with realistic decisions
   if (!usedRealBackend && feed) {
     const simResults = [
-      { sym: 'SPY',  strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',  passed: true,  rationale: `[${mode.toUpperCase()}] Mild bullish momentum, price above 5/20 MAs. Target configured for ${mode} profile.`, qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87, mode: mode },
-      { sym: 'QQQ',  strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',  passed: true,  rationale: `[${mode.toUpperCase()}] Tech sector momentum expansion confirmed. Optimal ${mode} strike delta selected.`, qty: 2, maxRisk: 1920, riskSummary: '7/7 Gates Passed', confidence: 82, mode: mode },
-      { sym: 'NVDA', strategy: 'Bull Call Spread',  passed: false, rationale: `[${mode.toUpperCase()}] Semiconductor momentum thesis formed, but liquidity gate triggered.`, qty: 2, maxRisk: 2100, riskSummary: 'Gate 4: Bid-Ask 18.3% > 15%', confidence: 74, mode: mode },
-      { sym: 'AAPL', strategy: 'Bear Put Spread',   passed: false, rationale: `[${mode.toUpperCase()}] Mean reversion signal detected below 50-day moving average.`, qty: 1, maxRisk: 1450, riskSummary: 'Gate 6: Drawdown near -2.8%', confidence: 61, mode: mode },
-      { sym: 'TSLA', strategy: 'Iron Condor',       passed: true,  rationale: `[${mode.toUpperCase()}] High IV percentile (55%) allows delta-neutral premium harvest outside 1.5-sigma.`, qty: 1, maxRisk: 1200, riskSummary: '7/7 Gates Passed', confidence: 79, mode: mode },
-      { sym: 'MSFT', strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',   passed: true,  rationale: `[${mode.toUpperCase()}] Enterprise SaaS momentum regime with optimal risk-reward ratio.`, qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85, mode: mode },
+      { sym: 'SPY',  strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',  passed: true,  rationale: `Mild bullish momentum with price above 5D/20D MAs. Target configured for ${mode} profile.`, qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87, mode: mode },
+      { sym: 'QQQ',  strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',  passed: true,  rationale: `Tech sector momentum expansion confirmed. Optimal ${mode} strike delta selected.`, qty: 2, maxRisk: 1920, riskSummary: '7/7 Gates Passed', confidence: 82, mode: mode },
+      { sym: 'NVDA', strategy: 'Bull Call Spread',  passed: false, rationale: `Semiconductor momentum thesis formed, but liquidity gate triggered.`, qty: 2, maxRisk: 2100, riskSummary: 'Gate 4: Bid-Ask 18.3% > 15%', confidence: 74, mode: mode },
+      { sym: 'AAPL', strategy: 'Bear Put Spread',   passed: false, rationale: `Mean reversion signal detected below 50-day moving average.`, qty: 1, maxRisk: 1450, riskSummary: 'Gate 6: Drawdown near -2.8%', confidence: 61, mode: mode },
+      { sym: 'TSLA', strategy: 'Iron Condor',       passed: true,  rationale: `High IV percentile (55%) allows delta-neutral premium harvest outside 1.5-sigma.`, qty: 1, maxRisk: 1200, riskSummary: '7/7 Gates Passed', confidence: 79, mode: mode },
+      { sym: 'MSFT', strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',   passed: true,  rationale: `Enterprise SaaS momentum regime with optimal risk-reward ratio.`, qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85, mode: mode },
     ];
 
     passedCount = simResults.filter(r => r.passed).length;

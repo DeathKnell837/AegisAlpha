@@ -7,6 +7,17 @@ let currentStrategyKey = 'BULL_CALL';
 let currentDTE = 30;
 let pendingCloseSymbol = null;
 
+/* ── NYSE MARKET HOURS HELPER ── */
+function isNYSEOpen() {
+  const now = new Date();
+  const utcDay = now.getUTCDay();
+  const utcHours = now.getUTCHours();
+  const utcMins = now.getUTCMinutes();
+  const utcTimeMin = utcHours * 60 + utcMins;
+  // NYSE: Mon (1) - Fri (5), 13:30 to 20:00 UTC (9:30 AM - 4:00 PM EDT / 9:30 PM - 4:00 AM PHT)
+  return utcDay >= 1 && utcDay <= 5 && utcTimeMin >= 810 && utcTimeMin < 1200;
+}
+
 // Multi-strategy quantitative profiles
 const STOCK_DATA = {
   SPY: {
@@ -536,17 +547,6 @@ async function fetchPositions() {
         }
       }
     } catch (e) {}
-
-/* ── NYSE MARKET HOURS HELPER ── */
-function isNYSEOpen() {
-  const now = new Date();
-  const utcDay = now.getUTCDay();
-  const utcHours = now.getUTCHours();
-  const utcMins = now.getUTCMinutes();
-  const utcTimeMin = utcHours * 60 + utcMins;
-  // NYSE: Mon (1) - Fri (5), 13:30 to 20:00 UTC (9:30 AM - 4:00 PM EDT / 9:30 PM - 4:00 AM PHT)
-  return utcDay >= 1 && utcDay <= 5 && utcTimeMin >= 810 && utcTimeMin < 1200;
-}
 
     const isMarketClosed = !isNYSEOpen();
 

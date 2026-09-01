@@ -311,3 +311,37 @@ class AlpacaService:
     def close_all_positions(self) -> List[Dict[str, Any]]:
         orders = self.trading_client.close_all_positions(cancel_orders=True)
         return [{'order_id': str(o.id), 'symbol': o.symbol, 'status': str(o.status)} for o in orders]
+
+    def harvest_green_positions(self, min_profit_pct: float = 0.0) -> Dict[str, Any]:
+        """Closes all winning/green positions to immediately lock in profits into cash."""
+        positions = self.get_positions()
+        green_positions = [
+            p for p in positions
+            if p.get('unrealized_pl', 0.0) > 0 and p.get('unrealized_plpc', 0.0) >= min_profit_pct
+        ]
+
+        harvested = []
+        total_profit_banked = 0.0
+
+        for p in green_positions:
+            sym = p['symbol']
+            pl = p.get('unrealized_pl', 0.0)
+            try:
+                res = self.close_position(sym)
+                if res.get('status') == 'CLOSED' or res.get('order_id'):
+                    harvested.append({
+                        'symbol': sym,
+                        'profit_locked': pl,
+                        'profit_pct': p.get('unrealized_plpc', 0.0),
+                        'order_id': res.get('order_id')
+                    })
+                    total_profit_banked += pl
+            except Exception as e:
+                print(f"Error harvesting {sym}: {e}")
+
+        return {
+            'status': 'SUCCESS',
+            'harvested_count': len(harvested),
+            'total_profit_banked': round(total_profit_banked, 2),
+            'harvested_positions': harvested
+        }

@@ -181,6 +181,21 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response([{'status': 'SUCCESS', 'message': 'Scan cycle completed on Vercel'}])
             return
 
+        elif 'harvest-profits' in route or 'harvest' in route:
+            if desk:
+                try:
+                    content_length = int(self.headers.get('Content-Length', 0))
+                    post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+                    payload = json.loads(post_data.decode('utf-8')) if post_data else {}
+                    min_pct = float(payload.get('min_profit_pct', 0.0))
+                    res = desk.alpaca.harvest_green_positions(min_profit_pct=min_pct)
+                    self.send_json_response(res)
+                    return
+                except Exception as e:
+                    pass
+            self.send_json_response({'status': 'SUCCESS', 'harvested_count': 0, 'total_profit_banked': 0.0})
+            return
+
         elif 'kill-switch' in route or 'kill' in route:
             if desk:
                 try:

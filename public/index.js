@@ -546,6 +546,21 @@ async function fetchPositions() {
     // Update position count badge
     const badgePos = document.getElementById('badge-pos-count');
     if (badgePos) badgePos.textContent = pos.length;
+
+    // Dynamic Harvest Button Label
+    const greenPositions = pos.filter(p => (p.unrealized_pl || 0) > 0);
+    const totalGreenProfit = greenPositions.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
+    const btnHarvest = document.getElementById('btn-harvest-profits');
+    if (btnHarvest) {
+      if (totalGreenProfit > 0) {
+        btnHarvest.innerHTML = `<i data-lucide="zap"></i><span>Take Profit (+$${totalGreenProfit.toFixed(2)})</span>`;
+        btnHarvest.disabled = false;
+      } else {
+        btnHarvest.innerHTML = `<i data-lucide="zap"></i><span>Auto Take-Profit</span>`;
+        btnHarvest.disabled = false;
+      }
+      lucide.createIcons();
+    }
   } catch (e) {
     console.error('Positions fetch:', e);
   }
@@ -1379,12 +1394,73 @@ function updateMarketStatus() {
   }
 }
 
+/* ── TRADING MODE HANDLER ── */
+let currentTradingMode = localStorage.getItem('aegis_mode') || 'scalp';
+
+function setTradingMode(mode) {
+  currentTradingMode = mode;
+  localStorage.setItem('aegis_mode', mode);
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    const btnMode = btn.getAttribute('data-mode') || btn.id.replace('mode-btn-', '');
+    btn.classList.toggle('active', btnMode === mode);
+  });
+
+  if (mode === 'scalp') {
+    showToast('⚡ Fast Scalper Mode: Quick +15% profit targets & rapid take-profit harvesting.', 'info');
+  } else if (mode === 'swing') {
+    showToast('⚖️ Swing Alpha Mode: 5–45 DTE horizon targeting 50%–75% max spread reward.', 'info');
+  } else if (mode === 'shield') {
+    showToast('🛡️ Capital Shield Mode: Strict 1% risk ceiling with delta-neutral hedge priority.', 'info');
+  }
+}
+
+/* ── AUTO TAKE-PROFIT / HARVEST BUTTON HANDLER ── */
+document.getElementById('btn-harvest-profits')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-harvest-profits');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" style="animation:spinSlow 0.8s linear infinite"></i><span>Harvesting Profit...</span>';
+    lucide.createIcons();
+  }
+
+  showToast('Scanning and harvesting all profitable green positions on Alpaca...', 'info');
+
+  try {
+    const r = await fetch('/api/harvest-profits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ min_profit_pct: 0.0 })
+    });
+    const d = await r.json();
+
+    if (d.harvested_count > 0) {
+      showToast(`✓ Profit Harvested! Banked +$${d.total_profit_banked.toFixed(2)} cash across ${d.harvested_count} winning positions!`, 'success');
+    } else {
+      showToast('All open positions checked. No active green positions ready for harvest.', 'info');
+    }
+
+    await fetchAccount();
+    await fetchPositions();
+    await fetchOrders();
+  } catch (e) {
+    showToast(`Harvest error: ${e.message}`, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="zap"></i><span>Auto Take-Profit</span>';
+      lucide.createIcons();
+    }
+  }
+});
+
 /* ── INITIALIZATION ── */
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
   initSidebar();
   initWatchlistClicks();
   initPayoffChart();
+  setTradingMode(currentTradingMode);
   fetchAccount();
   fetchPositions();
   fetchOrders();
@@ -1400,3 +1476,4 @@ window.addEventListener('DOMContentLoaded', () => {
     updateMarketStatus();
   }, 10000);
 });
+

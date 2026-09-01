@@ -120,6 +120,18 @@ class QuantServerHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({'error': str(e)}, 500)
             return
 
+        elif path == '/api/harvest-profits':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+            try:
+                payload = json.loads(post_data.decode('utf-8')) if post_data else {}
+                min_pct = float(payload.get('min_profit_pct', 0.0))
+                res = desk.alpaca.harvest_green_positions(min_profit_pct=min_pct)
+                self.send_json_response(res)
+            except Exception as e:
+                self.send_json_response({'error': str(e)}, 500)
+            return
+
         elif path == '/api/close-position':
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'

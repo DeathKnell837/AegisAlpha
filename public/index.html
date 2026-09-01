@@ -55,6 +55,11 @@
           <span class="mkt-dot closed"></span>
           <span class="mkt-status" id="mkt-status-text">NYSE Closed • Opens 9:30 PM PHT</span>
         </div>
+        <div class="mode-selector" id="trading-mode-selector" title="Select AI Execution Horizon">
+          <button class="mode-btn active" id="mode-btn-scalp" onclick="setTradingMode('scalp')"><i data-lucide="zap"></i><span>Fast Scalp</span></button>
+          <button class="mode-btn" id="mode-btn-swing" onclick="setTradingMode('swing')"><i data-lucide="trending-up"></i><span>Swing Alpha</span></button>
+          <button class="mode-btn" id="mode-btn-shield" onclick="setTradingMode('shield')"><i data-lucide="shield"></i><span>Shield</span></button>
+        </div>
       </div>
       <div class="topbar-metrics">
         <div class="tm"><span class="tm-l">Equity</span><span class="tm-v" id="hud-equity">$100,000.00</span></div>
@@ -251,7 +256,10 @@
               <button id="tab-btn-pos" class="tab-pill active" onclick="switchHoldingTab('pos')">Active Positions <span id="badge-pos-count" class="tab-badge">0</span></button>
               <button id="tab-btn-ord" class="tab-pill" onclick="switchHoldingTab('ord')">Live Orders <span id="badge-ord-count" class="tab-badge">0</span></button>
             </div>
-            <button id="btn-refresh-positions" class="btn-ghost" title="Refresh"><i data-lucide="rotate-cw"></i></button>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button id="btn-harvest-profits" class="btn-harvest" title="Immediately close all green winning positions and bank the profits"><i data-lucide="zap"></i><span>Auto Take-Profit</span></button>
+              <button id="btn-refresh-positions" class="btn-ghost" title="Refresh"><i data-lucide="rotate-cw"></i></button>
+            </div>
           </div>
           <div class="tbl-wrap">
             <table class="tbl" id="tbl-positions">

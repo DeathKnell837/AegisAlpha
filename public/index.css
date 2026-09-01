@@ -344,6 +344,19 @@ select.tf-input{font-family:var(--f);cursor:pointer;appearance:none;background-i
 .stag{cursor:pointer;transition:all .2s;user-select:none}
 .stag:hover{background:rgba(0,212,170,.25);transform:scale(1.03)}
 
+/* HARVEST ALL GREEN / TAKE PROFIT BUTTON */
+.btn-harvest{display:flex;align-items:center;gap:6px;background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.35);color:var(--teal);padding:5px 12px;border-radius:var(--r2);font-size:.72rem;font-weight:700;font-family:var(--f);cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-harvest i{width:13px;height:13px}
+.btn-harvest:hover{background:var(--teal);color:#0B0E11;box-shadow:0 0 18px rgba(0,212,170,.4);transform:translateY(-1px)}
+.btn-harvest:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* TRADING MODE SELECTOR */
+.mode-selector{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rp);padding:2px;gap:2px}
+.mode-btn{background:0;border:0;color:var(--t3);font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:var(--rp);cursor:pointer;transition:all .2s;font-family:var(--f);display:flex;align-items:center;gap:4px}
+.mode-btn i{width:12px;height:12px}
+.mode-btn:hover{color:var(--t1);background:rgba(255,255,255,.04)}
+.mode-btn.active{background:var(--teal);color:#0B0E11;font-weight:700;box-shadow:0 0 10px rgba(0,212,170,.3)}
+
 /* AGENT SCANNING PULSE */
 .ag-node.active-scanning{background:rgba(0,212,170,.08);border-left:2px solid var(--teal);animation:pulseNode 1s infinite alternate}
 @keyframes pulseNode{from{box-shadow:0 0 0 rgba(0,212,170,0)}to{box-shadow:0 0 14px rgba(0,212,170,.3)}}

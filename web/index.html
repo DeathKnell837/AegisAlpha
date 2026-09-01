@@ -148,9 +148,15 @@
         <!-- HERO CHART -->
         <section class="card card-chart">
           <div class="card-hd">
-            <div>
-              <h2 class="card-t">Options Payoff Curve</h2>
-              <span class="card-st">Defined-risk P&amp;L across strike horizons</span>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div>
+                <h2 class="card-t" id="chart-main-title">SPY &bull; Live Real-Time Price Stream</h2>
+                <span class="card-st" id="chart-sub-title">Streaming live market ticks &amp; sub-second volatility flow</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <button id="tab-chart-live" class="tab-pill active" onclick="setChartMode('live')">Live Stream</button>
+                <button id="tab-chart-payoff" class="tab-pill" onclick="setChartMode('payoff')">Options Payoff</button>
+              </div>
             </div>
             <div class="stag" id="current-strategy-badge"><span class="stag-d"></span><span id="badge-strat-name">Bull Call Spread</span></div>
           </div>

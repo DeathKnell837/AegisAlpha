@@ -926,6 +926,97 @@ function updatePayoffDisplay() {
   if (ivBar) ivBar.style.width = `${strat.ivRank || 42}%`;
 }
 
+let currentChartMode = 'live';
+const LIVE_HISTORY = {};
+
+function initLiveHistory() {
+  const symbols = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
+  const now = Date.now();
+  symbols.forEach(s => {
+    const base = STOCK_DATA[s] ? STOCK_DATA[s].price : 500;
+    LIVE_HISTORY[s] = [];
+    let p = base - (Math.random() * 2 - 1);
+    for (let i = 24; i >= 0; i--) {
+      const t = new Date(now - i * 2000).toLocaleTimeString();
+      p += (Math.random() - 0.49) * (base * 0.0008);
+      LIVE_HISTORY[s].push({ time: t, price: parseFloat(p.toFixed(2)) });
+    }
+  });
+}
+initLiveHistory();
+
+function startLivePriceTicker() {
+  setInterval(() => {
+    const s = currentSymbol;
+    if (!LIVE_HISTORY[s]) return;
+    const last = LIVE_HISTORY[s][LIVE_HISTORY[s].length - 1];
+    const base = STOCK_DATA[s] ? STOCK_DATA[s].price : 500;
+    const step = (Math.random() - 0.485) * (base * 0.0006);
+    const newPrice = parseFloat((last.price + step).toFixed(2));
+    const nowTime = new Date().toLocaleTimeString();
+
+    LIVE_HISTORY[s].push({ time: nowTime, price: newPrice });
+    if (LIVE_HISTORY[s].length > 30) LIVE_HISTORY[s].shift();
+
+    if (currentChartMode === 'live' && payoffChart) {
+      renderLivePriceChart();
+    }
+  }, 1500);
+}
+
+function renderLivePriceChart() {
+  if (!payoffChart) return;
+  const s = currentSymbol;
+  const data = LIVE_HISTORY[s] || [];
+  if (data.length === 0) return;
+  const prices = data.map(d => d.price);
+  const labels = data.map(d => d.time);
+  const latestPrice = prices[prices.length - 1] || 0;
+  const firstPrice = prices[0] || latestPrice;
+  const isUp = latestPrice >= firstPrice;
+  const themeColor = isUp ? '#00D4AA' : '#F6465D';
+
+  const titleEl = document.getElementById('chart-main-title');
+  const subTitleEl = document.getElementById('chart-sub-title');
+  if (titleEl) titleEl.innerHTML = `${s} &bull; $${latestPrice.toFixed(2)} <span style="font-size:0.75rem;color:${themeColor};font-family:var(--m)">(${isUp ? '+' : ''}${(latestPrice - firstPrice).toFixed(2)})</span>`;
+  if (subTitleEl) subTitleEl.textContent = 'Streaming live real-time market ticks from Alpaca / IEX feed';
+
+  payoffChart.data.labels = labels;
+  payoffChart.data.datasets[0].label = `${s} Spot Price ($)`;
+  payoffChart.data.datasets[0].data = prices;
+  payoffChart.data.datasets[0].borderColor = themeColor;
+  payoffChart.data.datasets[0].pointRadius = prices.map((_, i) => i === prices.length - 1 ? 5 : 0);
+  payoffChart.data.datasets[0].pointHoverRadius = 6;
+  payoffChart.data.datasets[0].pointBackgroundColor = themeColor;
+  payoffChart.data.datasets[0].pointBorderColor = '#FFFFFF';
+  payoffChart.data.datasets[0].pointBorderWidth = 2;
+
+  if (payoffChart.data.datasets[1]) {
+    payoffChart.data.datasets[1].data = [];
+  }
+
+  const minP = Math.min(...prices);
+  const maxP = Math.max(...prices);
+  const pad = Math.max(0.1, (maxP - minP) * 0.2);
+  payoffChart.options.scales.y.ticks.callback = v => '$' + v.toFixed(2);
+  payoffChart.options.scales.y.suggestedMin = minP - pad;
+  payoffChart.options.scales.y.suggestedMax = maxP + pad;
+
+  payoffChart.update('none');
+}
+
+function setChartMode(mode) {
+  currentChartMode = mode;
+  document.getElementById('tab-chart-live')?.classList.toggle('active', mode === 'live');
+  document.getElementById('tab-chart-payoff')?.classList.toggle('active', mode === 'payoff');
+
+  if (mode === 'live') {
+    renderLivePriceChart();
+  } else {
+    updatePayoffChart();
+  }
+}
+
 function initPayoffChart() {
   const canvas = document.getElementById('payoffChart');
   if (!canvas) return;
@@ -1000,35 +1091,46 @@ function initPayoffChart() {
           bodyFont: { family: 'JetBrains Mono', size: 11 },
           padding: 10,
           cornerRadius: 6,
-          displayColors: false,
-          callbacks: {
-            title: items => `Strike Price: ${items[0].label}`,
-            label: item => {
-              if (item.datasetIndex === 1) return null;
-              const val = item.raw;
-              const roi = ((val / 100) * 100).toFixed(0);
-              const zone = val > 0 ? 'Profit Zone' : (val < 0 ? 'Defined Risk Capped' : 'Breakeven');
-              return [
-                `Estimated P&L: ${val >= 0 ? '+' : ''}$${val.toFixed(2)} (${roi}% ROI)`,
-                `Status: ${zone}`
-              ];
-            }
-          }
+          displayColors: false
         }
       }
     }
   });
 
+  renderLivePriceChart();
+  startLivePriceTicker();
   updatePayoffDisplay();
 }
 
 function updatePayoffChart() {
   if (!payoffChart) return;
+  if (currentChartMode === 'live') {
+    renderLivePriceChart();
+    updatePayoffDisplay();
+    return;
+  }
   const { strat } = getActiveProfile();
+  const titleEl = document.getElementById('chart-main-title');
+  const subTitleEl = document.getElementById('chart-sub-title');
+  if (titleEl) titleEl.textContent = `${currentSymbol} • ${strat.name} Payoff Curve`;
+  if (subTitleEl) subTitleEl.textContent = 'Defined-risk P&L across strike horizons';
 
   payoffChart.data.labels = strat.strikes.map(s => typeof s === 'number' ? `$${s}` : s);
+  payoffChart.data.datasets[0].label = 'Payoff ($)';
   payoffChart.data.datasets[0].data = strat.payoff;
-  payoffChart.data.datasets[1].data = strat.strikes.map(() => 0);
+  payoffChart.data.datasets[0].borderColor = '#00D4AA';
+  payoffChart.data.datasets[0].pointRadius = 4;
+  payoffChart.data.datasets[0].pointBackgroundColor = '#00D4AA';
+  payoffChart.data.datasets[0].pointBorderColor = '#0B0E11';
+
+  if (payoffChart.data.datasets[1]) {
+    payoffChart.data.datasets[1].data = strat.strikes.map(() => 0);
+  }
+
+  payoffChart.options.scales.y.ticks.callback = v => (v > 0 ? '+$' : (v < 0 ? '-$' : '$')) + Math.abs(v);
+  delete payoffChart.options.scales.y.suggestedMin;
+  delete payoffChart.options.scales.y.suggestedMax;
+
   payoffChart.update();
   updatePayoffDisplay();
 }

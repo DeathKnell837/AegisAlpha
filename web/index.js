@@ -1575,19 +1575,43 @@ async function openHarvestModal() {
     const green = Array.isArray(pos) ? pos.filter(p => (p.unrealized_pl || 0) > 0) : [];
 
     if (green.length === 0) {
-      showToast('All winning positions are already queued, or no active green positions.', 'info');
+      showToast('No active green positions currently open.', 'info');
       return;
     }
 
+    // Fetch active queued orders
+    let queuedSymbols = new Set();
+    try {
+      const ordRes = await fetch('/api/orders');
+      if (ordRes.ok) {
+        const ordList = await ordRes.json();
+        if (Array.isArray(ordList)) {
+          ordList.forEach(o => {
+            const st = (o.status || '').toLowerCase();
+            if (st.includes('accepted') || st.includes('new') || st.includes('held')) {
+              queuedSymbols.add(o.symbol);
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
     const totalProfit = green.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
+    const unqueuedCount = green.filter(p => !queuedSymbols.has(p.symbol)).length;
+
     const listEl = document.getElementById('harvest-positions-list');
     if (listEl) {
-      listEl.innerHTML = green.map(p => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-          <span><strong>${p.symbol}</strong> (${p.qty}x)</span>
+      listEl.innerHTML = green.map(p => {
+        const isQueued = queuedSymbols.has(p.symbol);
+        const statusTag = isQueued
+          ? `<span style="background:rgba(245,158,11,0.15);color:var(--amber);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-left:6px">QUEUED</span>`
+          : `<span style="background:rgba(0,212,170,0.15);color:var(--teal);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-left:6px">READY</span>`;
+
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <span><strong>${p.symbol}</strong> (${p.qty}x)${statusTag}</span>
           <span style="color:var(--teal);font-weight:700">+${p.unrealized_pl >= 0 ? '$' + p.unrealized_pl.toFixed(2) : '-$' + Math.abs(p.unrealized_pl).toFixed(2)} (${p.unrealized_plpc.toFixed(2)}%)</span>
-        </div>
-      `).join('') + `
+        </div>`;
+      }).join('') + `
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;font-weight:800;color:var(--t1)">
           <span>Total Profit to Bank:</span>
           <span style="color:var(--teal);font-size:0.85rem">+$${totalProfit.toFixed(2)}</span>
@@ -1597,16 +1621,21 @@ async function openHarvestModal() {
 
     const noticeTitle = document.getElementById('harvest-notice-title');
     const noticeDesc = document.getElementById('harvest-notice-desc');
+    const confirmBtn = document.getElementById('btn-confirm-harvest');
     const confirmText = document.getElementById('btn-confirm-harvest-text');
 
     if (isMarketClosed) {
       if (noticeTitle) noticeTitle.textContent = '🟡 NYSE is Closed (Opens 9:30 PM PHT)';
-      if (noticeDesc) noticeDesc.textContent = 'Take-Profit orders will be placed as Limit Close orders on Alpaca and will fill the second the market opens at 9:30 PM PHT.';
-      if (confirmText) confirmText.textContent = 'Queue Take-Profit (9:30 PM)';
+      if (noticeDesc) noticeDesc.textContent = unqueuedCount > 0
+        ? 'Take-Profit orders will be placed as Limit Close orders on Alpaca and will fill automatically at 9:30 PM PHT Market Open.'
+        : 'All 3 winning take-profit orders are ALREADY safely queued on Alpaca to execute at 9:30 PM PHT!';
+      if (confirmText) confirmText.textContent = unqueuedCount > 0 ? 'Queue Take-Profit (9:30 PM)' : 'All Orders Queued (9:30 PM)';
+      if (confirmBtn) confirmBtn.disabled = unqueuedCount === 0;
     } else {
       if (noticeTitle) noticeTitle.textContent = '🟢 NYSE LIVE • Market Open';
       if (noticeDesc) noticeDesc.textContent = 'Orders will execute immediately at market price on the live exchange.';
       if (confirmText) confirmText.textContent = 'Execute Take-Profit Now';
+      if (confirmBtn) confirmBtn.disabled = false;
     }
 
     const modal = document.getElementById('harvest-modal');

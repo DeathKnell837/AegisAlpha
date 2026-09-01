@@ -537,8 +537,18 @@ async function fetchPositions() {
       }
     } catch (e) {}
 
-    const chip = document.getElementById('market-status-chip');
-    const isMarketClosed = chip?.querySelector('.mkt-dot.closed') !== null;
+/* ── NYSE MARKET HOURS HELPER ── */
+function isNYSEOpen() {
+  const now = new Date();
+  const utcDay = now.getUTCDay();
+  const utcHours = now.getUTCHours();
+  const utcMins = now.getUTCMinutes();
+  const utcTimeMin = utcHours * 60 + utcMins;
+  // NYSE: Mon (1) - Fri (5), 13:30 to 20:00 UTC (9:30 AM - 4:00 PM EDT / 9:30 PM - 4:00 AM PHT)
+  return utcDay >= 1 && utcDay <= 5 && utcTimeMin >= 810 && utcTimeMin < 1200;
+}
+
+    const isMarketClosed = !isNYSEOpen();
 
     tb.innerHTML = pos.map(p => {
       const isQueued = queuedSymbols.has(p.symbol);
@@ -1741,6 +1751,7 @@ document.getElementById('btn-confirm-harvest')?.addEventListener('click', async 
 /* ── INITIALIZATION ── */
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
+  updateMarketStatus();
   initSidebar();
   initWatchlistClicks();
   initPayoffChart();
@@ -1749,15 +1760,14 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchPositions();
   fetchOrders();
   fetchLogs();
-  updateMarketStatus();
 
   // Auto-refresh every 10 seconds
   setInterval(() => {
+    updateMarketStatus();
     fetchAccount();
     fetchPositions();
     fetchOrders();
     fetchLogs();
-    updateMarketStatus();
   }, 10000);
 });
 

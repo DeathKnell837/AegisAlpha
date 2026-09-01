@@ -14,6 +14,8 @@ class OptionHypothesis(BaseModel):
     confidence: float = Field(description="Confidence score between 0.0 and 1.0")
     rationale: str = Field(description="Detailed macro, momentum, and volatility rationale")
     suggested_dte_target: int = Field(default=14, description="Optimal Days to Expiration")
+    trading_mode: str = Field(default="scalp", description="scalp, swing, or shield")
+    take_profit_target_pct: float = Field(default=15.0, description="Target take-profit percentage")
 
 
 class FeatherlessLLMEngine:
@@ -26,12 +28,20 @@ class FeatherlessLLMEngine:
         self,
         symbol: str,
         market_data: Dict[str, Any],
-        chain_summary: Dict[str, Any]
+        chain_summary: Dict[str, Any],
+        mode: str = "scalp"
     ) -> OptionHypothesis:
-        """Calls Featherless AI to generate an options trading strategy hypothesis."""
+        """Calls Featherless AI to generate an options trading strategy hypothesis conditioned on trading mode."""
+        mode_instructions = {
+            "scalp": "TRADING MODE: FAST SCALPER (<24h). Prioritize immediate intraday momentum, tight strike spreads, rapid +15% profit targets, and fast exit turnover. Avoid multi-week holding.",
+            "swing": "TRADING MODE: SWING ALPHA (5-45 DTE). Prioritize theta decay harvest, institutional 0.40/0.20 delta spreads, and 50%-75% max reward targets over a multi-week horizon.",
+            "shield": "TRADING MODE: CAPITAL SHIELD (CONSERVATIVE). Prioritize delta-neutral Iron Condors outside 1.5-sigma bands, 1% max risk, and extreme drawdown defense."
+        }.get(mode, "TRADING MODE: FAST SCALPER (<24h).")
+
         prompt = f"""You are the Lead Quantitative Options Strategist at an autonomous hedge fund.
 Analyze the following asset and live option chain parameters to formulate an options trading hypothesis.
 
+Execution Profile: {mode_instructions}
 Underlying Asset: {symbol}
 Current Price: ${market_data.get('price', 0.0)}
 Trend Classification: {market_data.get('trend', 'UNKNOWN')}
@@ -50,8 +60,10 @@ REQUIREMENTS:
   "regime": "BULLISH",
   "strategy": "BULL_CALL_SPREAD",
   "confidence": 0.85,
-  "rationale": "Concise rationale explaining trend and risk-reward profile.",
-  "suggested_dte_target": 14
+  "rationale": "[{mode.upper()}] Concise rationale tailored to this mode explaining trend, entry trigger, and profit target.",
+  "suggested_dte_target": {7 if mode == 'scalp' else (21 if mode == 'swing' else 14)},
+  "trading_mode": "{mode}",
+  "take_profit_target_pct": {15.0 if mode == 'scalp' else (50.0 if mode == 'swing' else 10.0)}
 }}"""
 
         payload = json.dumps({

@@ -173,7 +173,8 @@ class handler(BaseHTTPRequestHandler):
                 try:
                     payload = json.loads(post_data.decode('utf-8')) if post_data else {}
                     watchlist = payload.get('watchlist', ['SPY', 'QQQ', 'NVDA', 'AAPL'])
-                    results = desk.run_cycle(watchlist)
+                    mode = payload.get('mode', 'scalp')
+                    results = desk.run_cycle(watchlist, mode=mode)
                     self.send_json_response([r.model_dump() for r in results])
                     return
                 except Exception as e:

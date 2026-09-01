@@ -724,7 +724,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function buildDecisionCardHtml({ symbol, strategy, confidence, passed, rationale, qty, maxRisk, riskSummary }) {
+function buildDecisionCardHtml({ symbol, strategy, confidence, passed, rationale, qty, maxRisk, riskSummary, mode }) {
   const ok = Boolean(passed);
   const stratClass = getStrategyClass(strategy);
   const confPct = Math.round(confidence > 1 ? confidence : (confidence * 100 || 80));
@@ -733,12 +733,15 @@ function buildDecisionCardHtml({ symbol, strategy, confidence, passed, rationale
   const safeRisk = numRisk.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const riskPct = (numRisk / 1000).toFixed(1);
   const safeSummary = riskSummary || (ok ? 'All 7 Gates Passed' : 'Risk Gate Constraint Veto');
+  const m = (mode || currentTradingMode || 'scalp').toLowerCase();
+  const modeTag = m === 'scalp' ? '⚡ SCALP' : (m === 'swing' ? '⚖️ SWING' : '🛡️ SHIELD');
 
   return `
     <div class="df-card ${ok ? 'df-pass' : 'df-veto'}" data-status="${ok ? 'ok' : 'no'}" style="${currentDecisionFilter !== 'all' && (currentDecisionFilter === 'ok' ? !ok : ok) ? 'display:none' : 'display:flex'}">
       <div class="df-top">
         <div class="df-left">
           <span class="df-sym">${symbol}</span>
+          <span class="df-mode-chip ${m}">${modeTag}</span>
           <span class="df-strat-chip ${stratClass}">${strategy.replace(/_/g, ' ')}</span>
         </div>
         <div class="df-right">
@@ -1207,7 +1210,7 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
     const fetchPromise = fetch('/api/run-scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ watchlist: watchlist.slice(0, 4) })
+      body: JSON.stringify({ watchlist: watchlist.slice(0, 4), mode: currentTradingMode })
     });
 
     // Timeout safety of 18s for seamless UX fallback
@@ -1230,12 +1233,12 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   // Populate Decision Feed with realistic decisions
   if (!usedRealBackend && feed) {
     const simResults = [
-      { sym: 'SPY',  strategy: 'Bull Call Spread',  passed: true,  rationale: 'Mild bullish momentum, price above 5/20 MAs. Realized vol 9.3% indicates high risk-adjusted spread probability.', qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87 },
-      { sym: 'QQQ',  strategy: 'Bull Call Spread',  passed: true,  rationale: 'Tech sector trend expansion confirmed. 0.42 Delta structuring targets optimal convex upside.', qty: 2, maxRisk: 1920, riskSummary: '7/7 Gates Passed', confidence: 82 },
-      { sym: 'NVDA', strategy: 'Bull Call Spread',  passed: false, rationale: 'Semiconductor momentum thesis formed, but liquidity gate triggered.', qty: 2, maxRisk: 2100, riskSummary: 'Gate 4: Bid-Ask 18.3% > 15%', confidence: 74 },
-      { sym: 'AAPL', strategy: 'Bear Put Spread',   passed: false, rationale: 'Mean reversion signal detected below 50-day moving average, but volatility check failed.', qty: 1, maxRisk: 1450, riskSummary: 'Gate 6: Drawdown near -2.8%', confidence: 61 },
-      { sym: 'TSLA', strategy: 'Iron Condor',       passed: true,  rationale: 'High IV percentile (55%) allows delta-neutral premium harvest outside 1.5-sigma range.', qty: 1, maxRisk: 1200, riskSummary: '7/7 Gates Passed', confidence: 79 },
-      { sym: 'MSFT', strategy: 'Bull Call Spread',   passed: true,  rationale: 'Enterprise SaaS momentum regime. 0.32 Delta call spread structured with 30 DTE.', qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85 },
+      { sym: 'SPY',  strategy: 'Bull Call Spread',  passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] Mild bullish momentum, price above 5/20 MAs. Fast profit target active.`, qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87, mode: currentTradingMode },
+      { sym: 'QQQ',  strategy: 'Bull Call Spread',  passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] Tech sector momentum expansion confirmed. 0.42 Delta structuring.`, qty: 2, maxRisk: 1920, riskSummary: '7/7 Gates Passed', confidence: 82, mode: currentTradingMode },
+      { sym: 'NVDA', strategy: 'Bull Call Spread',  passed: false, rationale: `[${currentTradingMode.toUpperCase()}] Semiconductor momentum thesis formed, but liquidity gate triggered.`, qty: 2, maxRisk: 2100, riskSummary: 'Gate 4: Bid-Ask 18.3% > 15%', confidence: 74, mode: currentTradingMode },
+      { sym: 'AAPL', strategy: 'Bear Put Spread',   passed: false, rationale: `[${currentTradingMode.toUpperCase()}] Mean reversion signal detected below 50-day moving average.`, qty: 1, maxRisk: 1450, riskSummary: 'Gate 6: Drawdown near -2.8%', confidence: 61, mode: currentTradingMode },
+      { sym: 'TSLA', strategy: 'Iron Condor',       passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] High IV percentile (55%) allows delta-neutral premium harvest.`, qty: 1, maxRisk: 1200, riskSummary: '7/7 Gates Passed', confidence: 79, mode: currentTradingMode },
+      { sym: 'MSFT', strategy: 'Bull Call Spread',   passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] Enterprise SaaS momentum regime with optimal delta spread.`, qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85, mode: currentTradingMode },
     ];
 
     passedCount = simResults.filter(r => r.passed).length;
@@ -1251,7 +1254,8 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
         rationale: res.rationale,
         qty: res.qty,
         maxRisk: res.maxRisk,
-        riskSummary: res.riskSummary
+        riskSummary: res.riskSummary,
+        mode: res.mode
       });
 
       const temp = document.createElement('div');

@@ -357,6 +357,12 @@ select.tf-input{font-family:var(--f);cursor:pointer;appearance:none;background-i
 .mode-btn:hover{color:var(--t1);background:rgba(255,255,255,.04)}
 .mode-btn.active{background:var(--teal);color:#0B0E11;font-weight:700;box-shadow:0 0 10px rgba(0,212,170,.3)}
 
+/* DECISION FEED MODE CHIP */
+.df-mode-chip{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:var(--r3);background:rgba(255,255,255,.05);border:1px solid var(--bd);white-space:nowrap}
+.df-mode-chip.scalp{color:var(--teal);background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.25)}
+.df-mode-chip.swing{color:var(--blue);background:rgba(30,144,255,.1);border-color:rgba(30,144,255,.25)}
+.df-mode-chip.shield{color:var(--amber);background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.25)}
+
 /* AGENT SCANNING PULSE */
 .ag-node.active-scanning{background:rgba(0,212,170,.08);border-left:2px solid var(--teal);animation:pulseNode 1s infinite alternate}
 @keyframes pulseNode{from{box-shadow:0 0 0 rgba(0,212,170,0)}to{box-shadow:0 0 14px rgba(0,212,170,.3)}}

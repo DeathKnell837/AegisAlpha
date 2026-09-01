@@ -36,8 +36,8 @@ class AegisOptionsDesk:
         self.risk_engine = DeterministicRiskEngine()
         self.trade_logs: List[AgentDecisionLog] = []
 
-    def scan_and_evaluate_symbol(self, symbol: str) -> Optional[AgentDecisionLog]:
-        """Runs the complete autonomous cycle for a single symbol."""
+    def scan_and_evaluate_symbol(self, symbol: str, mode: str = "scalp") -> Optional[AgentDecisionLog]:
+        """Runs the complete autonomous cycle for a single symbol under specified mode."""
         # 1. Market Data & Momentum
         market_data = self.alpaca.get_stock_price_and_momentum(symbol)
         if market_data.get("price", 0.0) <= 0:
@@ -50,8 +50,8 @@ class AegisOptionsDesk:
         if not calls and not puts:
             return None
 
-        # 3. Featherless AI Alpha Strategist
-        hypothesis = self.llm.generate_options_hypothesis(symbol, market_data, chain)
+        # 3. Featherless AI Alpha Strategist (mode-conditioned)
+        hypothesis = self.llm.generate_options_hypothesis(symbol, market_data, chain, mode=mode)
 
         # 4. Quantitative Greek & Strike Optimizer
         curr_price = market_data["price"]
@@ -158,13 +158,13 @@ class AegisOptionsDesk:
         self.trade_logs.append(log_entry)
         return log_entry
 
-    def run_cycle(self, watchlist: Optional[List[str]] = None) -> List[AgentDecisionLog]:
-        """Executes a full scanning and trading cycle across the watchlist."""
+    def run_cycle(self, watchlist: Optional[List[str]] = None, mode: str = "scalp") -> List[AgentDecisionLog]:
+        """Executes a full scanning and trading cycle across the watchlist under specified mode."""
         symbols = watchlist or self.config.default_watchlist
         cycle_results = []
         for sym in symbols:
             try:
-                res = self.scan_and_evaluate_symbol(sym)
+                res = self.scan_and_evaluate_symbol(sym, mode=mode)
                 if res:
                     cycle_results.append(res)
             except Exception as e:

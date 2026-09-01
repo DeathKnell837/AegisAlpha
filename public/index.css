@@ -385,6 +385,19 @@ select.tf-input{font-family:var(--f);cursor:pointer;appearance:none;background-i
 .ag-node.active-scanning{background:rgba(0,212,170,.08);border-left:2px solid var(--teal);animation:pulseNode 1s infinite alternate}
 @keyframes pulseNode{from{box-shadow:0 0 0 rgba(0,212,170,0)}to{box-shadow:0 0 14px rgba(0,212,170,.3)}}
 
+/* MARKET NOTICE BANNER */
+.mkt-notice-banner{display:flex;align-items:center;gap:12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--r2);padding:10px 14px;margin-bottom:12px;font-size:.76rem}
+.mkt-notice-banner.open{background:rgba(0,212,170,.06);border-color:rgba(0,212,170,.25)}
+.mkt-notice-icon{width:16px;height:16px;color:var(--amber);flex-shrink:0}
+.mkt-notice-banner.open .mkt-notice-icon{color:var(--teal)}
+.mkt-notice-content{display:flex;flex-direction:column;gap:2px}
+.mkt-notice-content strong{color:var(--t1);font-weight:700}
+.mkt-notice-content span{color:var(--t2);font-size:.72rem}
+
+/* QUEUED BADGE ON POSITION ROW */
+.queued-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--amber);padding:4px 8px;border-radius:var(--r3);font-size:.68rem;font-weight:700;font-family:var(--m);white-space:nowrap}
+.queued-badge i{width:12px;height:12px}
+
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:0}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.13)}
 

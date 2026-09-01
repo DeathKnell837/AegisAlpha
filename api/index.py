@@ -209,10 +209,38 @@ class handler(BaseHTTPRequestHandler):
             return
 
         elif 'close-position' in route or 'close' in route:
+            if desk:
+                try:
+                    content_length = int(self.headers.get('Content-Length', 0))
+                    post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+                    payload = json.loads(post_data.decode('utf-8')) if post_data else {}
+                    symbol = payload.get('symbol')
+                    res = desk.alpaca.close_position(symbol)
+                    self.send_json_response(res)
+                    return
+                except Exception as e:
+                    pass
             self.send_json_response({'status': 'CLOSED'})
             return
 
         elif 'manual-order' in route or 'order' in route:
+            if desk:
+                try:
+                    content_length = int(self.headers.get('Content-Length', 0))
+                    post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+                    payload = json.loads(post_data.decode('utf-8')) if post_data else {}
+                    symbol = payload.get('symbol')
+                    qty = float(payload.get('qty', 1))
+                    side_str = payload.get('side', 'buy').lower()
+                    type_str = payload.get('order_type', 'market').lower()
+                    limit_price = payload.get('limit_price')
+                    side = OrderSide.BUY if side_str == 'buy' else OrderSide.SELL
+                    order_type = OrderType.MARKET if type_str == 'market' else OrderType.LIMIT
+                    res = desk.alpaca.place_order_simple(symbol, qty, side, order_type, limit_price)
+                    self.send_json_response(res)
+                    return
+                except Exception as e:
+                    pass
             self.send_json_response({'status': 'ACCEPTED', 'order_id': 'vcl-ord-001'})
             return
 

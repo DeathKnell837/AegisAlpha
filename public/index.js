@@ -520,18 +520,42 @@ async function fetchPositions() {
       return;
     }
 
-    tb.innerHTML = pos.map(p => `<tr>
-      <td><strong>${p.symbol}</strong></td>
-      <td><span class="type-tag">${p.asset_class}</span></td>
-      <td><strong>${p.qty}</strong></td>
-      <td style="font-family:var(--m)">$${p.avg_entry_price.toFixed(2)}</td>
-      <td style="font-family:var(--m)">$${p.current_price.toFixed(2)}</td>
-      <td style="font-family:var(--m)">$${p.market_value.toFixed(2)}</td>
-      <td style="font-family:var(--m);font-weight:700;color:${p.unrealized_pl >= 0 ? 'var(--teal)' : 'var(--red)'}">
-        ${p.unrealized_pl >= 0 ? '+' : ''}$${p.unrealized_pl.toFixed(2)} (${p.unrealized_plpc.toFixed(2)}%)
-      </td>
-      <td><button class="btn-close-pos" onclick="openCloseModal('${p.symbol}')">Close</button></td>
-    </tr>`).join('');
+    // Fetch active queued orders to show queued badges
+    let queuedSymbols = new Set();
+    try {
+      const ordRes = await fetch('/api/orders');
+      if (ordRes.ok) {
+        const ordList = await ordRes.json();
+        if (Array.isArray(ordList)) {
+          ordList.forEach(o => {
+            const st = (o.status || '').toLowerCase();
+            if (st.includes('accepted') || st.includes('new') || st.includes('held')) {
+              queuedSymbols.add(o.symbol);
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
+    tb.innerHTML = pos.map(p => {
+      const isQueued = queuedSymbols.has(p.symbol);
+      const actionHtml = isQueued
+        ? `<span class="queued-badge" title="Close order queued on Alpaca. Will fill at 9:30 PM PHT Market Open."><i data-lucide="clock"></i> Queued (9:30 PM)</span>`
+        : `<button class="btn-close-pos" onclick="openCloseModal('${p.symbol}')">Close</button>`;
+
+      return `<tr>
+        <td><strong>${p.symbol}</strong></td>
+        <td><span class="type-tag">${p.asset_class}</span></td>
+        <td><strong>${p.qty}</strong></td>
+        <td style="font-family:var(--m)">$${p.avg_entry_price.toFixed(2)}</td>
+        <td style="font-family:var(--m)">$${p.current_price.toFixed(2)}</td>
+        <td style="font-family:var(--m)">$${p.market_value.toFixed(2)}</td>
+        <td style="font-family:var(--m);font-weight:700;color:${p.unrealized_pl >= 0 ? 'var(--teal)' : 'var(--red)'}">
+          ${p.unrealized_pl >= 0 ? '+' : ''}$${p.unrealized_pl.toFixed(2)} (${p.unrealized_plpc.toFixed(2)}%)
+        </td>
+        <td>${actionHtml}</td>
+      </tr>`;
+    }).join('');
     lucide.createIcons();
 
     // Unrealized P&L
@@ -548,13 +572,16 @@ async function fetchPositions() {
     if (badgePos) badgePos.textContent = pos.length;
 
     // Dynamic Harvest Button Label
-    const greenPositions = pos.filter(p => (p.unrealized_pl || 0) > 0);
-    const totalGreenProfit = greenPositions.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
+    const unqueuedGreen = pos.filter(p => (p.unrealized_pl || 0) > 0 && !queuedSymbols.has(p.symbol));
+    const totalGreenProfit = unqueuedGreen.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
     const btnHarvest = document.getElementById('btn-harvest-profits');
     if (btnHarvest) {
-      if (totalGreenProfit > 0) {
+      if (unqueuedGreen.length > 0) {
         btnHarvest.innerHTML = `<i data-lucide="zap"></i><span>Take Profit (+$${totalGreenProfit.toFixed(2)})</span>`;
         btnHarvest.disabled = false;
+      } else if (queuedSymbols.size > 0) {
+        btnHarvest.innerHTML = `<i data-lucide="check-circle" style="color:var(--amber)"></i><span style="color:var(--amber)">Orders Queued (${queuedSymbols.size})</span>`;
+        btnHarvest.disabled = true;
       } else {
         btnHarvest.innerHTML = `<i data-lucide="zap"></i><span>Auto Take-Profit</span>`;
         btnHarvest.disabled = false;
@@ -1070,6 +1097,18 @@ document.getElementById('btn-place-order')?.addEventListener('click', async () =
     return;
   }
 
+  let finalOrderType = orderType;
+  let finalLimit = limitPrice;
+  const chip = document.getElementById('market-status-chip');
+  const isMarketClosed = chip?.querySelector('.mkt-dot.closed') !== null;
+
+  if (isMarketClosed && finalOrderType === 'market') {
+    finalOrderType = 'limit';
+    const limitInput = document.getElementById('order-limit');
+    finalLimit = parseFloat(limitInput?.value) || 1.00;
+    showToast(`Market is closed. Converted to Limit Order @ $${finalLimit.toFixed(2)} to queue for 9:30 PM PHT!`, 'info');
+  }
+
   showToast(`Submitting ${side.toUpperCase()} ${qty}x ${contract}...`, 'info');
   if (statusEl) statusEl.innerHTML = '<span style="color:var(--t2)">Submitting order to Alpaca...</span>';
 
@@ -1077,16 +1116,18 @@ document.getElementById('btn-place-order')?.addEventListener('click', async () =
     const r = await fetch('/api/manual-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ symbol: contract, qty, side, order_type: orderType, limit_price: limitPrice })
+      body: JSON.stringify({ symbol: contract, qty, side, order_type: finalOrderType, limit_price: finalLimit })
     });
     const d = await r.json();
     if (d.error) {
       if (statusEl) statusEl.innerHTML = `<span class="order-err">Error: ${d.error}</span>`;
       showToast(`Order rejected: ${d.error}`, 'error');
     } else {
+      const isQueued = (d.status || '').toLowerCase().includes('accepted') || (d.status || '').toLowerCase().includes('new');
       if (statusEl) statusEl.innerHTML = `<span class="order-ok">Order ${d.status || 'SUBMITTED'} | ID: ${(d.order_id || '').slice(0, 8)}...</span>`;
-      showToast(`Order ${d.status || 'Filled'} for ${contract}!`, 'success');
+      showToast(isQueued ? `Order Queued on Alpaca for 9:30 PM PHT Open!` : `Order ${d.status || 'Filled'} for ${contract}!`, 'success');
       await fetchPositions();
+      await fetchOrders();
       await fetchAccount();
     }
   } catch (e) {
@@ -1453,9 +1494,18 @@ function updateMarketStatus() {
   const dot = chip?.querySelector('.mkt-dot');
   const txt = document.getElementById('mkt-status-text');
 
+  const banner = document.getElementById('mkt-notice-banner');
+  const bannerTitle = document.getElementById('mkt-notice-title');
+  const bannerDesc = document.getElementById('mkt-notice-desc');
+
   if (isOpen) {
     if (dot) { dot.className = 'mkt-dot open'; }
     if (txt) { txt.textContent = 'NYSE LIVE • Market Open'; txt.className = 'mkt-status open'; }
+    if (banner) {
+      banner.className = 'mkt-notice-banner open';
+      if (bannerTitle) bannerTitle.textContent = '🟢 NYSE LIVE • Market Open';
+      if (bannerDesc) bannerDesc.textContent = 'Direct institutional execution active. Orders fill instantly on the live exchange.';
+    }
   } else {
     if (dot) { dot.className = 'mkt-dot closed'; }
     let target = new Date(now);
@@ -1470,6 +1520,11 @@ function updateMarketStatus() {
     const diffH = Math.floor(diffMs / 3600000);
     const diffM = Math.floor((diffMs % 3600000) / 60000);
     if (txt) { txt.textContent = `NYSE Closed • Opens in ${diffH}h ${diffM}m`; txt.className = 'mkt-status'; }
+    if (banner) {
+      banner.className = 'mkt-notice-banner';
+      if (bannerTitle) bannerTitle.textContent = `🟡 NYSE Closed • Opens in ${diffH}h ${diffM}m (9:30 PM PHT)`;
+      if (bannerDesc) bannerDesc.textContent = 'All options orders & Take-Profit requests placed now are safely queued on Alpaca to fill automatically at Market Open.';
+    }
   }
 }
 

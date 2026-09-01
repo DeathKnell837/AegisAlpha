@@ -1016,6 +1016,7 @@ function setChartMode(mode) {
     updatePayoffChart();
   }
 }
+window.setChartMode = setChartMode;
 
 function initPayoffChart() {
   const canvas = document.getElementById('payoffChart');

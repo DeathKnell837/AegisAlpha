@@ -121,6 +121,18 @@ class QuantServerHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({'error': str(e)}, 500)
             return
 
+        elif path == '/api/cancel-order':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+            try:
+                payload = json.loads(post_data.decode('utf-8')) if post_data else {}
+                order_id = payload.get('order_id')
+                res = desk.alpaca.cancel_order(order_id)
+                self.send_json_response(res)
+            except Exception as e:
+                self.send_json_response({'error': str(e)}, 500)
+            return
+
         elif path == '/api/harvest-profits':
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'

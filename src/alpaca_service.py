@@ -301,7 +301,23 @@ class AlpacaService:
             'submitted_at': str(order.submitted_at),
         }
 
+    def cancel_order(self, order_id: str) -> Dict[str, Any]:
+        try:
+            self.trading_client.cancel_order_by_id(order_id)
+            return {'order_id': order_id, 'status': 'CANCELLED'}
+        except Exception as e:
+            return {'order_id': order_id, 'status': 'ERROR', 'message': str(e)}
+
     def close_position(self, symbol: str) -> Dict[str, Any]:
+        # Cancel any pending open orders on this symbol first
+        try:
+            open_orders = self.trading_client.get_orders()
+            for o in open_orders:
+                if o.symbol == symbol:
+                    self.trading_client.cancel_order_by_id(o.id)
+        except Exception:
+            pass
+
         try:
             res = self.trading_client.close_position(symbol)
             return {'symbol': symbol, 'status': 'CLOSED', 'order_id': str(res.id)}

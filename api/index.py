@@ -197,6 +197,21 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'status': 'SUCCESS', 'harvested_count': 0, 'total_profit_banked': 0.0})
             return
 
+        elif 'cancel-order' in route or 'cancel' in route:
+            if desk:
+                try:
+                    content_length = int(self.headers.get('Content-Length', 0))
+                    post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+                    payload = json.loads(post_data.decode('utf-8')) if post_data else {}
+                    order_id = payload.get('order_id')
+                    res = desk.alpaca.cancel_order(order_id)
+                    self.send_json_response(res)
+                    return
+                except Exception as e:
+                    pass
+            self.send_json_response({'status': 'CANCELLED'})
+            return
+
         elif 'kill-switch' in route or 'kill' in route:
             if desk:
                 try:

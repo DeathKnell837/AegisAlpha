@@ -537,11 +537,17 @@ async function fetchPositions() {
       }
     } catch (e) {}
 
+    const chip = document.getElementById('market-status-chip');
+    const isMarketClosed = chip?.querySelector('.mkt-dot.closed') !== null;
+
     tb.innerHTML = pos.map(p => {
       const isQueued = queuedSymbols.has(p.symbol);
-      const actionHtml = isQueued
-        ? `<span class="queued-badge" title="Close order queued on Alpaca. Will fill at 9:30 PM PHT Market Open."><i data-lucide="clock"></i> Queued (9:30 PM)</span>`
-        : `<button class="btn-close-pos" onclick="openCloseModal('${p.symbol}')">Close</button>`;
+      let actionHtml;
+      if (isMarketClosed && isQueued) {
+        actionHtml = `<span class="queued-badge" title="Close order queued on Alpaca. Will fill at 9:30 PM PHT Market Open."><i data-lucide="clock"></i> Queued (9:30 PM)</span>`;
+      } else {
+        actionHtml = `<button class="btn-close-pos" onclick="openCloseModal('${p.symbol}')">Close</button>`;
+      }
 
       return `<tr>
         <td><strong>${p.symbol}</strong></td>
@@ -572,14 +578,14 @@ async function fetchPositions() {
     if (badgePos) badgePos.textContent = pos.length;
 
     // Dynamic Harvest Button Label
-    const unqueuedGreen = pos.filter(p => (p.unrealized_pl || 0) > 0 && !queuedSymbols.has(p.symbol));
-    const totalGreenProfit = unqueuedGreen.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
+    const greenPositions = pos.filter(p => (p.unrealized_pl || 0) > 0);
+    const totalGreenProfit = greenPositions.reduce((s, p) => s + (p.unrealized_pl || 0), 0);
     const btnHarvest = document.getElementById('btn-harvest-profits');
     if (btnHarvest) {
-      if (unqueuedGreen.length > 0) {
+      if (totalGreenProfit > 0) {
         btnHarvest.innerHTML = `<i data-lucide="zap"></i><span>Take Profit (+$${totalGreenProfit.toFixed(2)})</span>`;
         btnHarvest.disabled = false;
-      } else if (queuedSymbols.size > 0) {
+      } else if (isMarketClosed && queuedSymbols.size > 0) {
         btnHarvest.innerHTML = `<i data-lucide="check-circle" style="color:var(--amber)"></i><span style="color:var(--amber)">Orders Queued (${queuedSymbols.size})</span>`;
         btnHarvest.disabled = true;
       } else {
@@ -594,6 +600,28 @@ async function fetchPositions() {
 }
 
 /* ── ORDERS ── */
+async function cancelOrder(orderId) {
+  if (!orderId) return;
+  showToast('Cancelling order on Alpaca...', 'info');
+  try {
+    const r = await fetch('/api/cancel-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId })
+    });
+    const d = await r.json();
+    if (d.status === 'CANCELLED') {
+      showToast('Order cancelled successfully on Alpaca!', 'success');
+    } else {
+      showToast(`Cancel result: ${d.message || d.status || 'Done'}`, 'info');
+    }
+    await fetchOrders();
+    await fetchPositions();
+  } catch (e) {
+    showToast(`Error cancelling order: ${e.message}`, 'error');
+  }
+}
+
 async function fetchOrders() {
   try {
     const r = await fetch('/api/orders');
@@ -615,15 +643,16 @@ async function fetchOrders() {
         const side = (o.side || 'BUY').replace('OrderSide.', '').toUpperCase();
         const type = (o.type || 'LIMIT').replace('OrderType.', '').toUpperCase();
         const timeStr = o.submitted_at ? new Date(o.submitted_at).toLocaleTimeString() : '--:--';
+        const ordId = o.order_id || o.id;
         return `<tr>
-          <td style="font-family:var(--m);font-size:0.75rem">${(o.order_id || '').slice(0, 8)}...</td>
+          <td style="font-family:var(--m);font-size:0.75rem">${(ordId || '').slice(0, 8)}...</td>
           <td><strong>${o.symbol || '--'}</strong></td>
           <td><strong style="color:${side === 'BUY' ? 'var(--teal)' : 'var(--red)'}">${side}</strong></td>
           <td><strong>${o.qty || 1}</strong></td>
           <td><span class="type-tag">${type}</span></td>
           <td><span class="status-tag ${status}">${status.toUpperCase()}</span></td>
           <td style="color:var(--t3);font-size:0.72rem">${timeStr}</td>
-          <td><button class="btn-close-pos" onclick="openCloseModal('${o.symbol}')" title="Cancel/Close">Cancel</button></td>
+          <td><button class="btn-close-pos" onclick="cancelOrder('${ordId}')" title="Cancel this active order on Alpaca">Cancel</button></td>
         </tr>`;
       }).join('');
       lucide.createIcons();

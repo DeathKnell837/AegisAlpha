@@ -429,6 +429,70 @@
           <h3><i data-lucide="info"></i> Important Note</h3>
           <p>This is a <strong>paper trading</strong> account &mdash; it uses fake money ($100,000). No real money is at risk. This is a safe sandbox where you can watch the AI work without any consequences.</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE SELECTION LAUNCH MODAL -->
+  <div id="mode-modal" class="help-overlay" style="display:none">
+    <div class="help-modal" style="max-width:540px">
+      <div class="help-header">
+        <h2 style="display:flex;align-items:center;gap:8px"><i data-lucide="zap" style="color:var(--teal)"></i> Choose AI Trading Mode</h2>
+        <button id="btn-cancel-mode-x" class="help-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="help-body">
+        <p style="font-size:0.82rem;color:var(--t2);margin-bottom:6px">Select how you want the 4 AI Agents to scan and structure trades for this run:</p>
+        
+        <div class="mode-modal-grid">
+          <!-- Scalp Card -->
+          <div class="mode-card-select selected" id="modal-card-scalp" onclick="selectModalMode('scalp')">
+            <div class="mode-card-header">
+              <span class="mode-card-title"><i data-lucide="zap"></i> Fast Scalper (&lt;24h)</span>
+              <span class="mode-card-badge scalp">Quick Profit</span>
+            </div>
+            <p class="mode-card-desc">Rapid momentum entries targeting <strong>+10% to +20% gains ($50 - $150)</strong>. Closes out quickly &mdash; zero overnight holding risk.</p>
+            <div class="mode-card-specs">
+              <span class="mode-card-spec">Hold: <strong>Minutes &ndash; Hours</strong></span>
+              <span class="mode-card-spec">Exit: <strong>Auto Take-Profit</strong></span>
+              <span class="mode-card-spec">Risk: <strong>0.5% &ndash; 1%</strong></span>
+            </div>
+          </div>
+
+          <!-- Swing Card -->
+          <div class="mode-card-select" id="modal-card-swing" onclick="selectModalMode('swing')">
+            <div class="mode-card-header">
+              <span class="mode-card-title"><i data-lucide="trending-up"></i> Swing Alpha (5&ndash;45 DTE)</span>
+              <span class="mode-card-badge swing">Institutional</span>
+            </div>
+            <p class="mode-card-desc">Institutional multi-week defined-risk spreads (Bull Call / Bear Put) capturing <strong>50% to 75% max reward</strong> via Theta decay.</p>
+            <div class="mode-card-specs">
+              <span class="mode-card-spec">Hold: <strong>5 &ndash; 45 Days</strong></span>
+              <span class="mode-card-spec">Exit: <strong>Spread Target</strong></span>
+              <span class="mode-card-spec">Risk: <strong>1% &ndash; 2%</strong></span>
+            </div>
+          </div>
+
+          <!-- Shield Card -->
+          <div class="mode-card-select" id="modal-card-shield" onclick="selectModalMode('shield')">
+            <div class="mode-card-header">
+              <span class="mode-card-title"><i data-lucide="shield"></i> Capital Shield</span>
+              <span class="mode-card-badge shield">Max Defense</span>
+            </div>
+            <p class="mode-card-desc">Conservative defensive mode using Delta-Neutral Iron Condors outside 1.5-sigma bands with strict 1% risk caps.</p>
+            <div class="mode-card-specs">
+              <span class="mode-card-spec">Hold: <strong>1 &ndash; 3 Weeks</strong></span>
+              <span class="mode-card-spec">Exit: <strong>Delta-Neutral</strong></span>
+              <span class="mode-card-spec">Risk: <strong>&le; 1.0%</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-confirm-launch-mode" class="btn-launch-mode" onclick="launchAgentsWithSelectedMode()">
+          <i data-lucide="play"></i><span id="btn-launch-mode-text">Launch AI Agents (Fast Scalp)</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- KILL SWITCH MODAL -->
   <div id="kill-modal" class="help-overlay" style="display:none">

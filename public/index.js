@@ -1146,12 +1146,61 @@ function initWatchlistClicks() {
   });
 }
 
+/* ── MODE SELECTION MODAL HANDLERS ── */
+let modalSelectedMode = localStorage.getItem('aegis_mode') || 'scalp';
+
+function openModeModal() {
+  modalSelectedMode = currentTradingMode || 'scalp';
+  selectModalMode(modalSelectedMode);
+  const modal = document.getElementById('mode-modal');
+  if (modal) modal.style.display = 'flex';
+  lucide.createIcons();
+}
+
+function selectModalMode(mode) {
+  modalSelectedMode = mode;
+  document.querySelectorAll('.mode-card-select').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById(`modal-card-${mode}`);
+  if (card) card.classList.add('selected');
+
+  const modeNames = {
+    scalp: 'Fast Scalp',
+    swing: 'Swing Alpha',
+    shield: 'Capital Shield'
+  };
+  const launchTxt = document.getElementById('btn-launch-mode-text');
+  if (launchTxt) launchTxt.textContent = `Launch AI Agents (${modeNames[mode] || 'Fast Scalp'})`;
+}
+
+function launchAgentsWithSelectedMode() {
+  const modal = document.getElementById('mode-modal');
+  if (modal) modal.style.display = 'none';
+  setTradingMode(modalSelectedMode);
+  executeScanWorkflow(modalSelectedMode);
+}
+
+document.getElementById('btn-cancel-mode-x')?.addEventListener('click', () => {
+  const modal = document.getElementById('mode-modal');
+  if (modal) modal.style.display = 'none';
+});
+
+document.getElementById('mode-modal')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('mode-modal').style.display = 'none';
+  }
+});
+
 /* ── RUN AI AGENTS BUTTON WITH PARALLEL LIVE STOPWATCH & DYNAMIC AGENT HIGHLIGHTS ── */
-document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
+document.getElementById('btn-run-scan')?.addEventListener('click', () => {
+  openModeModal();
+});
+
+async function executeScanWorkflow(selectedMode) {
   const btn = document.getElementById('btn-run-scan');
-  if (btn.disabled) return;
+  if (!btn || btn.disabled) return;
   btn.disabled = true;
 
+  const mode = selectedMode || currentTradingMode || 'scalp';
   const watchlist = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
   const nodes = document.querySelectorAll('.ag-node');
   const feed = document.getElementById('decision-feed');
@@ -1162,26 +1211,49 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   let elapsed = 0;
   let isDone = false;
 
+  const modeStageConfigs = {
+    scalp: [
+      { title: '1/4 Market Scanner', desc: 'Scanning Momentum Spikes' },
+      { title: '2/4 Alpha Strategist', desc: 'Qwen-72B Scalp Reasoning' },
+      { title: '3/4 Greeks Engine', desc: 'Sizing 0.50Δ Fast Momentum' },
+      { title: '4/4 Risk Gatekeeper', desc: 'Auditing +15% Scalp Targets' },
+    ],
+    swing: [
+      { title: '1/4 Market Scanner', desc: 'Pulling IEX Volatility' },
+      { title: '2/4 Alpha Strategist', desc: 'Qwen-72B Spread Reasoning' },
+      { title: '3/4 Greeks Engine', desc: 'Pricing 0.40Δ Spreads' },
+      { title: '4/4 Risk Gatekeeper', desc: 'Auditing 7 Safety Gates' },
+    ],
+    shield: [
+      { title: '1/4 Market Scanner', desc: 'Calculating 1.5σ Volatility' },
+      { title: '2/4 Alpha Strategist', desc: 'Qwen-72B Delta-Neutral Model' },
+      { title: '3/4 Greeks Engine', desc: 'Sizing Iron Condor Wings' },
+      { title: '4/4 Risk Gatekeeper', desc: 'Auditing 1% Max Risk Cap' },
+    ]
+  };
+
+  const currentStages = modeStageConfigs[mode] || modeStageConfigs.scalp;
+
   const updateProgress = () => {
     let stageTitle = '';
     let stageDesc = '';
     let activeIdx = 0;
 
     if (elapsed < 3) {
-      stageTitle = '1/4 Market Scanner';
-      stageDesc = 'Pulling IEX Quotes';
+      stageTitle = currentStages[0].title;
+      stageDesc = currentStages[0].desc;
       activeIdx = 0;
     } else if (elapsed < 10) {
-      stageTitle = '2/4 Alpha Strategist';
-      stageDesc = 'Qwen-72B Reasoning';
+      stageTitle = currentStages[1].title;
+      stageDesc = currentStages[1].desc;
       activeIdx = 1;
     } else if (elapsed < 16) {
-      stageTitle = '3/4 Greeks Engine';
-      stageDesc = 'Pricing 0.40Δ Spreads';
+      stageTitle = currentStages[2].title;
+      stageDesc = currentStages[2].desc;
       activeIdx = 2;
     } else {
-      stageTitle = '4/4 Risk Gatekeeper';
-      stageDesc = 'Auditing 7 Safety Gates';
+      stageTitle = currentStages[3].title;
+      stageDesc = currentStages[3].desc;
       activeIdx = 3;
     }
 
@@ -1210,7 +1282,7 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
     const fetchPromise = fetch('/api/run-scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ watchlist: watchlist.slice(0, 4), mode: currentTradingMode })
+      body: JSON.stringify({ watchlist: watchlist.slice(0, 4), mode: mode })
     });
 
     // Timeout safety of 18s for seamless UX fallback
@@ -1233,12 +1305,12 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   // Populate Decision Feed with realistic decisions
   if (!usedRealBackend && feed) {
     const simResults = [
-      { sym: 'SPY',  strategy: 'Bull Call Spread',  passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] Mild bullish momentum, price above 5/20 MAs. Fast profit target active.`, qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87, mode: currentTradingMode },
-      { sym: 'QQQ',  strategy: 'Bull Call Spread',  passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] Tech sector momentum expansion confirmed. 0.42 Delta structuring.`, qty: 2, maxRisk: 1920, riskSummary: '7/7 Gates Passed', confidence: 82, mode: currentTradingMode },
-      { sym: 'NVDA', strategy: 'Bull Call Spread',  passed: false, rationale: `[${currentTradingMode.toUpperCase()}] Semiconductor momentum thesis formed, but liquidity gate triggered.`, qty: 2, maxRisk: 2100, riskSummary: 'Gate 4: Bid-Ask 18.3% > 15%', confidence: 74, mode: currentTradingMode },
-      { sym: 'AAPL', strategy: 'Bear Put Spread',   passed: false, rationale: `[${currentTradingMode.toUpperCase()}] Mean reversion signal detected below 50-day moving average.`, qty: 1, maxRisk: 1450, riskSummary: 'Gate 6: Drawdown near -2.8%', confidence: 61, mode: currentTradingMode },
-      { sym: 'TSLA', strategy: 'Iron Condor',       passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] High IV percentile (55%) allows delta-neutral premium harvest.`, qty: 1, maxRisk: 1200, riskSummary: '7/7 Gates Passed', confidence: 79, mode: currentTradingMode },
-      { sym: 'MSFT', strategy: 'Bull Call Spread',   passed: true,  rationale: `[${currentTradingMode.toUpperCase()}] Enterprise SaaS momentum regime with optimal delta spread.`, qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85, mode: currentTradingMode },
+      { sym: 'SPY',  strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',  passed: true,  rationale: `[${mode.toUpperCase()}] Mild bullish momentum, price above 5/20 MAs. Target configured for ${mode} profile.`, qty: 2, maxRisk: 1840, riskSummary: '7/7 Gates Passed', confidence: 87, mode: mode },
+      { sym: 'QQQ',  strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',  passed: true,  rationale: `[${mode.toUpperCase()}] Tech sector momentum expansion confirmed. Optimal ${mode} strike delta selected.`, qty: 2, maxRisk: 1920, riskSummary: '7/7 Gates Passed', confidence: 82, mode: mode },
+      { sym: 'NVDA', strategy: 'Bull Call Spread',  passed: false, rationale: `[${mode.toUpperCase()}] Semiconductor momentum thesis formed, but liquidity gate triggered.`, qty: 2, maxRisk: 2100, riskSummary: 'Gate 4: Bid-Ask 18.3% > 15%', confidence: 74, mode: mode },
+      { sym: 'AAPL', strategy: 'Bear Put Spread',   passed: false, rationale: `[${mode.toUpperCase()}] Mean reversion signal detected below 50-day moving average.`, qty: 1, maxRisk: 1450, riskSummary: 'Gate 6: Drawdown near -2.8%', confidence: 61, mode: mode },
+      { sym: 'TSLA', strategy: 'Iron Condor',       passed: true,  rationale: `[${mode.toUpperCase()}] High IV percentile (55%) allows delta-neutral premium harvest outside 1.5-sigma.`, qty: 1, maxRisk: 1200, riskSummary: '7/7 Gates Passed', confidence: 79, mode: mode },
+      { sym: 'MSFT', strategy: mode === 'shield' ? 'Iron Condor' : 'Bull Call Spread',   passed: true,  rationale: `[${mode.toUpperCase()}] Enterprise SaaS momentum regime with optimal risk-reward ratio.`, qty: 2, maxRisk: 1650, riskSummary: '7/7 Gates Passed', confidence: 85, mode: mode },
     ];
 
     passedCount = simResults.filter(r => r.passed).length;
@@ -1271,7 +1343,7 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   clearInterval(timerInterval);
   nodes.forEach(n => n.classList.remove('active-scanning'));
 
-  showToast(`AI Pipeline Complete in ${elapsed}s! ${passedCount}/${totalCount} trades approved.`, 'success');
+  showToast(`AI Pipeline Complete in ${elapsed}s! ${passedCount}/${totalCount} trades approved under ${mode.toUpperCase()} mode.`, 'success');
 
   // Flash green completion badge with actual elapsed time
   btn.innerHTML = `<i data-lucide="check-circle" style="color:var(--teal)"></i><span style="color:var(--teal)">✓ Complete (${elapsed}s) • ${passedCount} Approved</span>`;
@@ -1282,7 +1354,7 @@ document.getElementById('btn-run-scan')?.addEventListener('click', async () => {
   btn.disabled = false;
   btn.innerHTML = '<i data-lucide="zap"></i><span>Run AI Agents</span>';
   lucide.createIcons();
-});
+}
 
 /* ── KILL SWITCH MODAL ── */
 document.getElementById('btn-kill-switch')?.addEventListener('click', () => {

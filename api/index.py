@@ -158,6 +158,15 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'symbol': sym, 'strategy': strat, 'strikes': [], 'payoff': []})
             return
 
+        elif 'status' in route:
+            self.send_json_response({
+                "status": "online",
+                "model": "Qwen-2.5-72B-Instruct (Featherless AI)",
+                "broker": "Alpaca Paper (IEX Real-Time Feed)",
+                "risk_engine": "Deterministic 7-Gate Guardrails"
+            })
+            return
+
         elif 'orders' in route:
             if desk:
                 try:

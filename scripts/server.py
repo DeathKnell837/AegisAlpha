@@ -104,6 +104,15 @@ class QuantServerHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({'error': str(e)}, 500)
             return
 
+        elif path == '/api/status':
+            self.send_json_response({
+                "status": "online",
+                "model": "Qwen-2.5-72B-Instruct (Featherless AI)",
+                "broker": "Alpaca Paper (IEX Real-Time Feed)",
+                "risk_engine": "Deterministic 7-Gate Guardrails"
+            })
+            return
+
         elif path == '/api/orders':
             try:
                 orders = desk.alpaca.trading_client.get_orders()

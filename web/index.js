@@ -932,12 +932,16 @@ const LIVE_HISTORY = {};
 function initLiveHistory() {
   const symbols = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
   const now = Date.now();
+  const isOpen = isNYSEOpen();
   symbols.forEach(s => {
     const base = STOCK_DATA[s] ? STOCK_DATA[s].price : 500;
     LIVE_HISTORY[s] = [];
     let p = base - (Math.random() * 2 - 1);
     for (let i = 24; i >= 0; i--) {
-      const t = new Date(now - i * 2000).toLocaleTimeString('en-US', { hour12: false });
+      // If closed, generate static session close intervals (e.g. 15:30:00 to 16:00:00)
+      const t = isOpen
+        ? new Date(now - i * 2000).toLocaleTimeString('en-US', { hour12: false })
+        : new Date(new Date().setHours(15, 36 + i, 0)).toLocaleTimeString('en-US', { hour12: false });
       p += (Math.random() - 0.49) * (base * 0.0008);
       LIVE_HISTORY[s].push({ time: t, price: parseFloat(p.toFixed(2)) });
     }
@@ -947,6 +951,9 @@ initLiveHistory();
 
 function startLivePriceTicker() {
   setInterval(() => {
+    // Only stream live price ticks during actual NYSE trading hours!
+    if (!isNYSEOpen()) return;
+
     const s = currentSymbol;
     if (!LIVE_HISTORY[s]) return;
     const last = LIVE_HISTORY[s][LIVE_HISTORY[s].length - 1];
@@ -974,15 +981,28 @@ function renderLivePriceChart() {
   const latestPrice = prices[prices.length - 1] || 0;
   const firstPrice = prices[0] || latestPrice;
   const isUp = latestPrice >= firstPrice;
+  const isOpen = isNYSEOpen();
   const themeColor = isUp ? '#00D4AA' : '#F6465D';
 
   const titleEl = document.getElementById('chart-main-title');
   const subTitleEl = document.getElementById('chart-sub-title');
-  if (titleEl) titleEl.innerHTML = `${s} &bull; $${latestPrice.toFixed(2)} <span style="font-size:0.75rem;color:${themeColor};font-family:var(--m)">(${isUp ? '+' : ''}${(latestPrice - firstPrice).toFixed(2)})</span>`;
-  if (subTitleEl) subTitleEl.textContent = 'Streaming live real-time market ticks from Alpaca / IEX feed';
+  if (titleEl) {
+    if (isOpen) {
+      titleEl.innerHTML = `${s} &bull; $${latestPrice.toFixed(2)} <span style="font-size:0.75rem;color:${themeColor};font-family:var(--m)">(${isUp ? '+' : ''}${(latestPrice - firstPrice).toFixed(2)})</span>`;
+    } else {
+      titleEl.innerHTML = `${s} &bull; $${latestPrice.toFixed(2)} <span style="font-size:0.72rem;color:var(--amber);font-family:var(--m);font-weight:600">[Market Closed &bull; Session Close]</span>`;
+    }
+  }
+  if (subTitleEl) {
+    if (isOpen) {
+      subTitleEl.textContent = 'Streaming live real-time market ticks from Alpaca / IEX feed';
+    } else {
+      subTitleEl.textContent = 'Exchange closed. Live price stream is paused until 9:30 PM PHT Market Open.';
+    }
+  }
 
   payoffChart.data.labels = labels;
-  payoffChart.data.datasets[0].label = `${s} Spot Price ($)`;
+  payoffChart.data.datasets[0].label = `${s} ${isOpen ? 'Live Price' : 'Session Close'} ($)`;
   payoffChart.data.datasets[0].data = prices;
   payoffChart.data.datasets[0].borderColor = themeColor;
   payoffChart.data.datasets[0].pointRadius = prices.map((_, i) => i === prices.length - 1 ? 5 : 0);

@@ -125,6 +125,11 @@
               <span class="earn-label">Today's Earnings</span>
               <span class="earn-big pos" id="earn-day">+$0.00</span>
               <span class="earn-pct pos" id="earn-day-pct">0.00%</span>
+              <div class="earn-attribution" id="earn-attribution">
+                <span class="ea-pill pos" id="ea-scalp">SCALP: +$2,450.00</span>
+                <span class="ea-pill pos" id="ea-swing">SWING: +$1,072.54</span>
+                <span class="ea-pill" id="ea-shield">SHIELD: $0.00</span>
+              </div>
             </div>
           </div>
           <div class="earn-card">
@@ -161,6 +166,19 @@
             <div class="stag" id="current-strategy-badge"><span class="stag-d"></span><span id="badge-strat-name">Bull Call Spread</span></div>
           </div>
           <div class="chart-box"><canvas id="payoffChart"></canvas></div>
+          <div class="chart-controls-bar" id="chart-controls-bar">
+            <div class="ctrl-group">
+              <span class="ctrl-label">DTE Horizon:</span>
+              <input type="range" id="slider-dte" class="ctrl-slider" min="7" max="45" value="30" step="1">
+              <span class="ctrl-val" id="val-slider-dte">30d</span>
+            </div>
+            <div class="ctrl-group">
+              <span class="ctrl-label">IV Shift:</span>
+              <input type="range" id="slider-iv" class="ctrl-slider" min="-20" max="50" value="0" step="5">
+              <span class="ctrl-val" id="val-slider-iv">+0%</span>
+            </div>
+            <button id="btn-reset-sliders" class="btn-reset-ctrl" title="Reset DTE & IV parameters to live chain defaults">[RESET DEFAULTS]</button>
+          </div>
         </section>
 
         <!-- GREEKS ROW -->
@@ -285,6 +303,22 @@
           </div>
         </section>
 
+        <!-- TERMINAL HOTKEYS FOOTER -->
+        <div class="hotkey-bar">
+          <span class="hk-tag">[HOTKEYS]</span>
+          <span class="hk-key">1-6</span> Tickers
+          <span class="hk-sep">&bull;</span>
+          <span class="hk-key">SPACE</span> Run AI
+          <span class="hk-sep">&bull;</span>
+          <span class="hk-key">T</span> Take-Profit
+          <span class="hk-sep">&bull;</span>
+          <span class="hk-key">K</span> Kill-Switch
+          <span class="hk-sep">&bull;</span>
+          <span class="hk-key">ESC</span> Close
+          <span class="hk-sep">&bull;</span>
+          <span class="hk-key">?</span> Help
+        </div>
+
       </main>
 
       <!-- RIGHT PANEL -->
@@ -321,15 +355,32 @@
         </div>
 
         <div class="card card-guard">
-          <div class="guard-hd"><i data-lucide="lock"></i><span>7 Hardcoded Guardrails</span></div>
-          <div class="guard-list">
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>Defined-Risk Spreads Only</span></div>
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>Max 2% Risk per Position</span></div>
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>Max 20% Options Exposure</span></div>
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>Bid-Ask Slippage &lt;15%</span></div>
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>Duration Window 5-45 DTE</span></div>
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>-3% Daily Drawdown Breaker</span></div>
-            <div class="gr"><i data-lucide="check-circle-2"></i><span>Dynamic Unit Risk Sizing</span></div>
+          <div class="guard-hd"><i data-lucide="lock"></i><span>7 Risk Telemetry Gauges</span></div>
+          <div class="guard-list-gauges" id="guardrails-list">
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">Capital Exposure</span><span class="rg-val pass" id="rg-val-exposure">12.4% / 20.0%</span></div>
+              <div class="rg-bar"><div class="rg-fill" id="rg-fill-exposure" style="width:62%"></div></div>
+            </div>
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">Max Position Risk</span><span class="rg-val pass" id="rg-val-unit-risk">0.8% / 2.0%</span></div>
+              <div class="rg-bar"><div class="rg-fill" id="rg-fill-unit-risk" style="width:40%"></div></div>
+            </div>
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">Daily Drawdown Breaker</span><span class="rg-val pass" id="rg-val-drawdown">-0.41% / -3.00%</span></div>
+              <div class="rg-bar"><div class="rg-fill" id="rg-fill-drawdown" style="width:14%"></div></div>
+            </div>
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">Defined-Risk Only</span><span class="rg-val pass" id="rg-val-defined">[PASS: 100%]</span></div>
+            </div>
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">Bid-Ask Slippage Gate</span><span class="rg-val pass" id="rg-val-slippage">[&lt;15% PASS]</span></div>
+            </div>
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">DTE Horizon Window</span><span class="rg-val pass" id="rg-val-dte">[5-45 DTE PASS]</span></div>
+            </div>
+            <div class="rg-item">
+              <div class="rg-row"><span class="rg-name">Dynamic Kelly Sizing</span><span class="rg-val pass" id="rg-val-kelly">[ACTIVE]</span></div>
+            </div>
           </div>
         </div>
 
@@ -572,6 +623,6 @@
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="index.js?v=4.0"></script>
+  <script src="index.js?v=4.2"></script>
 </body>
 </html>

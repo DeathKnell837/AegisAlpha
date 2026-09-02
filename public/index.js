@@ -509,8 +509,53 @@ async function fetchAccount() {
     }
     const earnTime = document.getElementById('earn-time');
     if (earnTime) earnTime.textContent = new Date().toLocaleTimeString();
+
+    // Cache latest account and update risk telemetry
+    window._latestAccount = acc;
+    updateRiskGauges(acc, window._latestPositions || []);
   } catch (e) {
     console.error('Account fetch:', e);
+  }
+}
+
+/* ── DYNAMIC RISK GAUGES & P&L ATTRIBUTION ENGINE ── */
+function updateRiskGauges(account, positions) {
+  if (!account) return;
+  const eq = account.equity || 100000;
+  const dayPnlPct = account.day_pnl_pct || 0;
+  
+  // 1. Exposure Gate
+  const totalPosValue = Array.isArray(positions) ? positions.reduce((s, p) => s + Math.abs(p.market_value || 0), 0) : 0;
+  const expPct = eq > 0 ? (totalPosValue / eq) * 100 : 0;
+  const expVal = document.getElementById('rg-val-exposure');
+  const expFill = document.getElementById('rg-fill-exposure');
+  if (expVal) expVal.textContent = `${expPct.toFixed(1)}% / 20.0%`;
+  if (expFill) {
+    expFill.style.width = `${Math.min(100, (expPct / 20) * 100)}%`;
+    expFill.className = expPct > 18 ? 'rg-fill fail' : (expPct > 14 ? 'rg-fill warn' : 'rg-fill');
+  }
+
+  // 2. Unit Risk Gate
+  const maxUnitCost = Array.isArray(positions) && positions.length > 0
+    ? Math.max(...positions.map(p => Math.abs(p.cost_basis || p.market_value || 0)))
+    : 0;
+  const unitRiskPct = eq > 0 ? (maxUnitCost / eq) * 100 : 0;
+  const unitVal = document.getElementById('rg-val-unit-risk');
+  const unitFill = document.getElementById('rg-fill-unit-risk');
+  if (unitVal) unitVal.textContent = `${unitRiskPct.toFixed(1)}% / 2.0%`;
+  if (unitFill) {
+    unitFill.style.width = `${Math.min(100, (unitRiskPct / 2) * 100)}%`;
+    unitFill.className = unitRiskPct > 1.8 ? 'rg-fill fail' : (unitRiskPct > 1.4 ? 'rg-fill warn' : 'rg-fill');
+  }
+
+  // 3. Drawdown Breaker
+  const ddVal = document.getElementById('rg-val-drawdown');
+  const ddFill = document.getElementById('rg-fill-drawdown');
+  if (ddVal) ddVal.textContent = `${dayPnlPct >= 0 ? '+' : ''}${dayPnlPct.toFixed(2)}% / -3.00%`;
+  if (ddFill) {
+    const ddUse = Math.min(100, (Math.abs(Math.min(0, dayPnlPct)) / 3) * 100);
+    ddFill.style.width = `${Math.max(8, ddUse)}%`;
+    ddFill.className = Math.abs(dayPnlPct) >= 2.5 ? 'rg-fill fail' : (Math.abs(dayPnlPct) >= 1.5 ? 'rg-fill warn' : 'rg-fill');
   }
 }
 
@@ -520,6 +565,8 @@ async function fetchPositions() {
     const r = await fetch('/api/positions');
     if (!r.ok) return;
     const pos = await r.json();
+    window._latestPositions = pos;
+    updateRiskGauges(window._latestAccount, pos);
     const tb = document.getElementById('positions-tbody');
     if (!pos || pos.length === 0) {
       tb.innerHTML = `<tr><td colspan="8" class="empty-cell"><div class="empty-box"><i data-lucide="inbox"></i><span>No active positions. Run AI Scan or place a manual order.</span></div></td></tr>`;
@@ -1094,10 +1141,49 @@ function renderLivePriceChart() {
   payoffChart.update('none');
 }
 
+let currentChartMode = 'live';
+const LIVE_HISTORY = {};
+let warpDTE = 30;
+let warpIVShift = 0;
+
+function initChartControls() {
+  const dteSlider = document.getElementById('slider-dte');
+  const dteVal = document.getElementById('val-slider-dte');
+  const ivSlider = document.getElementById('slider-iv');
+  const ivVal = document.getElementById('val-slider-iv');
+  const btnReset = document.getElementById('btn-reset-sliders');
+
+  dteSlider?.addEventListener('input', (e) => {
+    warpDTE = parseInt(e.target.value, 10);
+    if (dteVal) dteVal.textContent = `${warpDTE}d`;
+    if (currentChartMode === 'payoff') updatePayoffChart();
+  });
+
+  ivSlider?.addEventListener('input', (e) => {
+    warpIVShift = parseInt(e.target.value, 10);
+    if (ivVal) ivVal.textContent = `${warpIVShift >= 0 ? '+' : ''}${warpIVShift}%`;
+    if (currentChartMode === 'payoff') updatePayoffChart();
+  });
+
+  btnReset?.addEventListener('click', () => {
+    warpDTE = 30;
+    warpIVShift = 0;
+    if (dteSlider) dteSlider.value = 30;
+    if (dteVal) dteVal.textContent = '30d';
+    if (ivSlider) ivSlider.value = 0;
+    if (ivVal) ivVal.textContent = '+0%';
+    if (currentChartMode === 'payoff') updatePayoffChart();
+    showToast('Reset DTE & IV parameters to live chain defaults');
+  });
+}
+
 function setChartMode(mode) {
   currentChartMode = mode;
   document.getElementById('tab-chart-live')?.classList.toggle('active', mode === 'live');
   document.getElementById('tab-chart-payoff')?.classList.toggle('active', mode === 'payoff');
+  
+  const ctrlBar = document.getElementById('chart-controls-bar');
+  if (ctrlBar) ctrlBar.classList.toggle('active', mode === 'payoff');
 
   if (mode === 'live') {
     renderLivePriceChart();
@@ -1195,6 +1281,7 @@ function initPayoffChart() {
     }
   });
 
+  initChartControls();
   fetchMarketBars(currentSymbol);
   fetchDynamicPayoff(currentSymbol, currentStrategyKey);
   updatePayoffDisplay();
@@ -1211,11 +1298,19 @@ function updatePayoffChart() {
   const titleEl = document.getElementById('chart-main-title');
   const subTitleEl = document.getElementById('chart-sub-title');
   if (titleEl) titleEl.textContent = `${currentSymbol} • ${strat.name} Payoff Curve`;
-  if (subTitleEl) subTitleEl.textContent = 'Defined-risk P&L across real live option strikes';
+  if (subTitleEl) subTitleEl.textContent = `Defined-risk P&L across live strikes [DTE: ${warpDTE}d | IV Shift: ${warpIVShift >= 0 ? '+' : ''}${warpIVShift}%]`;
+
+  // Apply interactive warp mathematical curve if DTE or IV shift modified
+  const ivFactor = 1 + (warpIVShift / 100);
+  const dteFactor = warpDTE / 30;
+  const warpedPayoff = strat.payoff.map(p => {
+    if (p > 0) return Math.round(p * ivFactor);
+    return Math.round(p * (1 / Math.max(0.5, dteFactor)));
+  });
 
   payoffChart.data.labels = strat.strikes.map(s => typeof s === 'number' ? `$${s}` : s);
   payoffChart.data.datasets[0].label = 'Payoff ($)';
-  payoffChart.data.datasets[0].data = strat.payoff;
+  payoffChart.data.datasets[0].data = warpedPayoff;
   payoffChart.data.datasets[0].borderColor = '#00D4AA';
   payoffChart.data.datasets[0].pointRadius = 4;
   payoffChart.data.datasets[0].pointBackgroundColor = '#00D4AA';
@@ -1268,7 +1363,7 @@ function selectStock(sym) {
   showToast(`Selected ${sym} ($${stock ? stock.price.toFixed(2) : '--'})`);
 }
 
-/* ── OPTION CHAIN LOADER ── */
+/* ── OPTION CHAIN LOADER WITH LIQUIDITY HEATMAP & LEG TAGS ── */
 async function loadOptionChain(sym) {
   if (!sym) sym = document.getElementById('trade-symbol')?.value?.trim()?.toUpperCase() || 'SPY';
   const status = document.getElementById('chain-status');
@@ -1276,7 +1371,7 @@ async function loadOptionChain(sym) {
   const orderForm = document.getElementById('order-form');
 
   if (status) {
-    status.innerHTML = `<span style="color:var(--teal)"><i data-lucide="loader" style="animation:spinSlow 1s linear infinite;width:14px;height:14px;vertical-align:middle;display:inline-block"></i> Fetching option chain for ${sym}...</span>`;
+    status.innerHTML = `<span style="color:var(--teal)"><i data-lucide="loader" style="animation:spinSlow 1s linear infinite;width:14px;height:14px;vertical-align:middle;display:inline-block"></i> Fetching live option chain for ${sym}...</span>`;
     lucide.createIcons();
   }
   if (results) results.innerHTML = '';
@@ -1301,16 +1396,25 @@ async function loadOptionChain(sym) {
       status.innerHTML = `<strong>${sym}</strong> @ $${d.underlying_price} | Trend: <strong>${d.trend}</strong> | ${calls.length} calls, ${puts.length} puts (Click any row to trade)`;
     }
 
-    let html = '<table class="chain-tbl"><thead><tr><th>Contract</th><th>Type</th><th>Strike</th><th>Bid</th><th>Ask</th><th>Mid</th><th>Delta</th><th>IV</th></tr></thead><tbody>';
+    let html = '<table class="chain-tbl"><thead><tr><th>Contract</th><th>Type</th><th>Strike</th><th>Bid</th><th>Ask</th><th>Mid</th><th>Spread</th><th>Delta</th><th>IV</th></tr></thead><tbody>';
     const all = [...calls.slice(0, 8), ...puts.slice(0, 8)];
     all.forEach(c => {
+      const spreadPct = c.mid > 0 ? ((c.ask - c.bid) / c.mid) * 100 : 0;
+      const spreadTag = spreadPct <= 2.0
+        ? '<span class="chain-badge cb-tight">[TIGHT]</span>'
+        : (spreadPct <= 5.0 ? '<span class="chain-badge cb-liquid">[LIQUID]</span>' : '<span class="chain-badge cb-wide">[WIDE]</span>');
+      const legTag = Math.abs(Math.abs(c.delta) - 0.40) < 0.08
+        ? ' <span class="chain-badge cb-long">[LONG LEG]</span>'
+        : (Math.abs(Math.abs(c.delta) - 0.20) < 0.08 ? ' <span class="chain-badge cb-short">[SHORT LEG]</span>' : '');
+
       html += `<tr onclick="selectContract(this, '${c.contract_symbol}', ${c.mid})">
-        <td><strong>${c.contract_symbol.slice(-15)}</strong></td>
+        <td><strong>${c.contract_symbol.slice(-15)}</strong>${legTag}</td>
         <td style="font-weight:700;color:${c.type === 'CALL' ? 'var(--teal)' : 'var(--red)'}">${c.type}</td>
         <td>$${c.strike.toFixed(0)}</td>
         <td>$${c.bid.toFixed(2)}</td>
         <td>$${c.ask.toFixed(2)}</td>
         <td style="font-weight:700;color:var(--teal)">$${c.mid.toFixed(2)}</td>
+        <td>${spreadTag}</td>
         <td>${c.delta.toFixed(3)}</td>
         <td>${c.iv.toFixed(1)}%</td>
       </tr>`;
@@ -1949,6 +2053,34 @@ document.getElementById('btn-confirm-harvest')?.addEventListener('click', async 
   }
 });
 
+/* ── BLOOMBERG-STYLE KEYBOARD SHORTCUTS ── */
+function initKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    // Ignore if typing in an input or textarea
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+    const symbols = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
+    if (e.key >= '1' && e.key <= '6') {
+      const idx = parseInt(e.key, 10) - 1;
+      if (symbols[idx]) {
+        selectStock(symbols[idx]);
+      }
+    } else if (e.code === 'Space') {
+      e.preventDefault();
+      openModeModal();
+    } else if (e.key === 't' || e.key === 'T') {
+      e.preventDefault();
+      openHarvestModal();
+    } else if (e.key === 'k' || e.key === 'K') {
+      e.preventDefault();
+      document.getElementById('btn-kill-switch')?.click();
+    } else if (e.key === '?') {
+      e.preventDefault();
+      document.getElementById('btn-help')?.click();
+    }
+  });
+}
+
 /* ── INITIALIZATION ── */
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
@@ -1956,6 +2088,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initWatchlistClicks();
   initPayoffChart();
+  initKeyboardShortcuts();
   setTradingMode(currentTradingMode);
   fetchAccount();
   fetchPositions();

@@ -405,6 +405,164 @@ select.tf-input{font-family:var(--f);cursor:pointer;appearance:none;background-i
 .queued-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--amber);padding:4px 8px;border-radius:var(--r3);font-size:.68rem;font-weight:700;font-family:var(--m);white-space:nowrap}
 .queued-badge i{width:12px;height:12px}
 
+/* ═══════════════════════════════════════════
+   INSTITUTIONAL QUANT UPGRADES (TERMINAL STYLE)
+   ═══════════════════════════════════════════ */
+
+/* HERO CHART CONTROLS BAR (DTE & IV WARP SLIDERS) */
+.chart-controls-bar{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:var(--bg3);
+  border:1px solid var(--bd);
+  border-radius:var(--r2);
+  padding:8px 14px;
+  margin-top:10px;
+  font-family:var(--m);
+  font-size:.72rem;
+}
+.chart-controls-bar.active{display:flex;flex-wrap:wrap}
+.ctrl-group{display:flex;align-items:center;gap:10px}
+.ctrl-label{color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:.64rem}
+.ctrl-val{color:var(--teal);font-weight:700;background:rgba(0,212,170,.08);padding:2px 6px;border-radius:var(--r3);border:1px solid rgba(0,212,170,.2)}
+.ctrl-slider{
+  -webkit-appearance:none;
+  appearance:none;
+  width:110px;
+  height:4px;
+  background:var(--bg5);
+  border-radius:2px;
+  outline:none;
+  cursor:pointer;
+}
+.ctrl-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--teal);
+  box-shadow:0 0 8px var(--teal);
+  cursor:pointer;
+  transition:transform .15s;
+}
+.ctrl-slider::-webkit-slider-thumb:hover{transform:scale(1.3)}
+.btn-reset-ctrl{
+  background:0;
+  border:1px solid var(--bd);
+  color:var(--t3);
+  padding:3px 8px;
+  border-radius:var(--r3);
+  font-size:.62rem;
+  font-family:var(--m);
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+}
+.btn-reset-ctrl:hover{color:var(--t1);border-color:var(--t2);background:rgba(255,255,255,.03)}
+
+/* P&L ATTRIBUTION PILLS */
+.earn-attribution{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+  flex-wrap:wrap;
+}
+.ea-pill{
+  font-family:var(--m);
+  font-size:.64rem;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:var(--r3);
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--bd);
+  color:var(--t2);
+}
+.ea-pill.pos{color:var(--teal);background:rgba(0,212,170,.08);border-color:rgba(0,212,170,.25)}
+.ea-pill.neg{color:var(--red);background:rgba(246,70,93,.08);border-color:rgba(246,70,93,.25)}
+
+/* LIVE RISK GAUGES (RIGHT SIDEBAR) */
+.guard-list-gauges{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.rg-item{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  background:rgba(255,255,255,.015);
+  border:1px solid var(--bd);
+  border-radius:var(--r3);
+  padding:6px 10px;
+}
+.rg-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:.68rem;
+}
+.rg-name{color:var(--t2);font-weight:500}
+.rg-val{font-family:var(--m);font-weight:700;font-size:.66rem;color:var(--t1)}
+.rg-val.pass{color:var(--teal)}
+.rg-val.warn{color:var(--amber)}
+.rg-val.fail{color:var(--red)}
+.rg-bar{
+  width:100%;
+  height:3px;
+  background:var(--bg5);
+  border-radius:2px;
+  overflow:hidden;
+  margin-top:2px;
+}
+.rg-fill{
+  height:100%;
+  background:var(--teal);
+  box-shadow:0 0 6px rgba(0,212,170,.4);
+  transition:width .4s ease;
+}
+.rg-fill.warn{background:var(--amber);box-shadow:0 0 6px rgba(245,158,11,.4)}
+.rg-fill.fail{background:var(--red);box-shadow:0 0 6px rgba(246,70,93,.4)}
+
+/* OPTION CHAIN LIQUIDITY & LEG TAGS */
+.chain-badge{
+  font-family:var(--m);
+  font-size:.6rem;
+  font-weight:700;
+  padding:1px 5px;
+  border-radius:var(--r3);
+  white-space:nowrap;
+  display:inline-block;
+}
+.cb-tight{background:rgba(0,212,170,.12);color:var(--teal);border:1px solid rgba(0,212,170,.3)}
+.cb-liquid{background:rgba(45,156,219,.12);color:var(--blue);border:1px solid rgba(45,156,219,.3)}
+.cb-wide{background:rgba(246,70,93,.12);color:var(--red);border:1px solid rgba(246,70,93,.3)}
+.cb-long{background:rgba(0,212,170,.2);color:#00D4AA;border:1px solid #00D4AA;font-weight:800}
+.cb-short{background:rgba(245,158,11,.2);color:#F59E0B;border:1px solid #F59E0B;font-weight:800}
+
+/* HOTKEYS FOOTER BAR */
+.hotkey-bar{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  background:var(--bg2);
+  border:1px solid var(--bd);
+  border-radius:var(--r2);
+  padding:6px 14px;
+  margin-top:14px;
+  font-family:var(--m);
+  font-size:.66rem;
+  color:var(--t3);
+  flex-wrap:wrap;
+}
+.hk-tag{color:var(--teal);font-weight:700;letter-spacing:.5px}
+.hk-key{color:var(--t1);background:var(--bg4);border:1px solid var(--bd2);padding:1px 5px;border-radius:var(--r3);font-weight:700}
+.hk-sep{color:var(--bd2)}
+
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:0}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.13)}
 

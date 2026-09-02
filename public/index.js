@@ -2096,7 +2096,13 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchMarketBars(currentSymbol);
   fetchDynamicPayoff(currentSymbol, currentStrategyKey);
 
-  // Auto-refresh every 10 seconds
+  // Real-time 1-second clock timer
+  setInterval(() => {
+    const earnTime = document.getElementById('earn-time');
+    if (earnTime) earnTime.textContent = new Date().toLocaleTimeString();
+  }, 1000);
+
+  // Fast real-time live stream polling every 2 seconds
   setInterval(() => {
     updateMarketStatus();
     fetchAccount();
@@ -2105,6 +2111,6 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchLogs();
     fetchMarketQuotes();
     fetchMarketBars(currentSymbol);
-  }, 10000);
+  }, 2000);
 });
 

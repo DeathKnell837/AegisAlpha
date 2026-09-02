@@ -75,6 +75,35 @@ class QuantServerHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({'error': str(e)}, 500)
             return
 
+        elif path == '/api/market-bars':
+            query = parse_qs(parsed.query)
+            sym = query.get('symbol', ['SPY'])[0].upper()
+            try:
+                bars = desk.alpaca.get_stock_intraday_bars(sym, limit=30)
+                self.send_json_response(bars)
+            except Exception as e:
+                self.send_json_response({'error': str(e)}, 500)
+            return
+
+        elif path == '/api/market-quotes':
+            try:
+                quotes = desk.alpaca.get_watchlist_market_quotes()
+                self.send_json_response(quotes)
+            except Exception as e:
+                self.send_json_response({'error': str(e)}, 500)
+            return
+
+        elif path == '/api/dynamic-payoff':
+            query = parse_qs(parsed.query)
+            sym = query.get('symbol', ['SPY'])[0].upper()
+            strat = query.get('strategy', ['BULL_CALL'])[0].upper()
+            try:
+                payoff = desk.alpaca.get_dynamic_payoff_curve(sym, strat)
+                self.send_json_response(payoff)
+            except Exception as e:
+                self.send_json_response({'error': str(e)}, 500)
+            return
+
         elif path == '/api/orders':
             try:
                 orders = desk.alpaca.trading_client.get_orders()

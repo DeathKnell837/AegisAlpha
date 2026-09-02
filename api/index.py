@@ -120,6 +120,44 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response({'symbol': sym, 'underlying_price': 769.28, 'trend': 'MILD_BULLISH', 'calls': [], 'puts': []})
             return
 
+        elif 'market-bars' in route or 'bars' in route:
+            query = parse_qs(parsed.query)
+            sym = query.get('symbol', ['SPY'])[0].upper()
+            if desk:
+                try:
+                    bars = desk.alpaca.get_stock_intraday_bars(sym, limit=30)
+                    self.send_json_response(bars)
+                    return
+                except Exception as e:
+                    pass
+            self.send_json_response([])
+            return
+
+        elif 'market-quotes' in route or 'quotes' in route:
+            if desk:
+                try:
+                    quotes = desk.alpaca.get_watchlist_market_quotes()
+                    self.send_json_response(quotes)
+                    return
+                except Exception as e:
+                    pass
+            self.send_json_response({})
+            return
+
+        elif 'dynamic-payoff' in route or 'payoff' in route:
+            query = parse_qs(parsed.query)
+            sym = query.get('symbol', ['SPY'])[0].upper()
+            strat = query.get('strategy', ['BULL_CALL'])[0].upper()
+            if desk:
+                try:
+                    payoff = desk.alpaca.get_dynamic_payoff_curve(sym, strat)
+                    self.send_json_response(payoff)
+                    return
+                except Exception as e:
+                    pass
+            self.send_json_response({'symbol': sym, 'strategy': strat, 'strikes': [], 'payoff': []})
+            return
+
         elif 'orders' in route:
             if desk:
                 try:

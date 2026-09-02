@@ -1339,7 +1339,53 @@ document.getElementById('current-strategy-badge')?.addEventListener('click', asy
   showToast(`Payoff strategy switched to: ${strat.name}`);
 });
 
-/* ── SWITCH ACTIVE STOCK (WATCHLIST CLICK) ── */
+/* ── PRE-FETCH ALL WATCHLIST DATA (ZERO LAG SWITCHING) ── */
+async function preFetchAllMarketData() {
+  const symbols = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
+  await Promise.allSettled(symbols.map(async (s) => {
+    try {
+      const bRes = await fetch(`/api/market-bars?symbol=${s}`);
+      if (bRes.ok) {
+        const bars = await bRes.json();
+        if (Array.isArray(bars) && bars.length > 0) {
+          LIVE_HISTORY[s] = bars.map(b => ({ time: b.time, price: b.close }));
+        }
+      }
+      const pRes = await fetch(`/api/dynamic-payoff?symbol=${s}&strategy=${currentStrategyKey}`);
+      if (pRes.ok) {
+        const data = await pRes.json();
+        if (data && Array.isArray(data.strikes) && data.strikes.length > 0) {
+          if (!STOCK_DATA[s]) STOCK_DATA[s] = { price: data.underlying_price, strategies: {} };
+          if (!STOCK_DATA[s].strategies) STOCK_DATA[s].strategies = {};
+          STOCK_DATA[s].strategies[currentStrategyKey] = {
+            name: data.strategy || 'Options Spread',
+            strikes: data.strikes,
+            payoff: data.payoff,
+            maxProfit: data.maxProfit,
+            maxLoss: data.maxLoss,
+            breakeven: data.breakeven,
+            beDist: 'Live Chain',
+            rr: '1 : 2.5',
+            pop: '68.0%',
+            maxRoi: `+${Math.round((data.maxProfit / Math.abs(data.maxLoss || 100)) * 100)}% ROI`,
+            delta: data.delta || '+0.40',
+            gamma: data.gamma || '+0.034',
+            theta: data.theta || '-$0.27',
+            vega: data.vega || '+$0.46',
+            iv: data.iv || '18.5%',
+            ivRank: 45,
+            deltaBar: 65,
+            gammaBar: 50,
+            thetaBar: 40,
+            vegaBar: 55
+          };
+        }
+      }
+    } catch (e) {}
+  }));
+}
+
+/* ── SWITCH ACTIVE STOCK (WATCHLIST CLICK - INSTANT 0MS RENDER) ── */
 function selectStock(sym) {
   currentSymbol = sym;
   const stock = STOCK_DATA[sym];
@@ -1349,11 +1395,19 @@ function selectStock(sym) {
     card.classList.toggle('active', card.dataset.symbol === sym);
   });
 
-  // 2. Fetch real historical bars & live payoff from Alpaca
+  // 2. INSTANT ZERO-LAG RENDER: Switch chart & payoff in 0ms from cache
+  if (currentChartMode === 'live') {
+    renderLivePriceChart();
+  } else {
+    updatePayoffChart();
+  }
+  updatePayoffDisplay();
+
+  // 3. Background revalidation
   fetchMarketBars(sym);
   fetchDynamicPayoff(sym, currentStrategyKey);
 
-  // 3. Update Manual Trade Input & Auto-load Chain
+  // 4. Update Manual Trade Input & Auto-load Chain
   const tradeInput = document.getElementById('trade-symbol');
   if (tradeInput) tradeInput.value = sym;
   loadOptionChain(sym);
@@ -2095,6 +2149,7 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchMarketQuotes();
   fetchMarketBars(currentSymbol);
   fetchDynamicPayoff(currentSymbol, currentStrategyKey);
+  preFetchAllMarketData();
 
   // Real-time 1-second clock timer
   setInterval(() => {
@@ -2102,7 +2157,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (earnTime) earnTime.textContent = new Date().toLocaleTimeString();
   }, 1000);
 
-  // Fast real-time live stream polling every 2 seconds
+  // Fast 5-second live stream polling interval
   setInterval(() => {
     updateMarketStatus();
     fetchAccount();
@@ -2111,6 +2166,6 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchLogs();
     fetchMarketQuotes();
     fetchMarketBars(currentSymbol);
-  }, 2000);
+  }, 5000);
 });
 

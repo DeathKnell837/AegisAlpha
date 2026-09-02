@@ -1141,8 +1141,6 @@ function renderLivePriceChart() {
   payoffChart.update('none');
 }
 
-let currentChartMode = 'live';
-const LIVE_HISTORY = {};
 let warpDTE = 30;
 let warpIVShift = 0;
 

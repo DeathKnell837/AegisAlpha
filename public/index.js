@@ -932,17 +932,14 @@ const LIVE_HISTORY = {};
 function initLiveHistory() {
   const symbols = ['SPY', 'QQQ', 'NVDA', 'AAPL', 'TSLA', 'MSFT'];
   const now = Date.now();
-  const isOpen = isNYSEOpen();
   symbols.forEach(s => {
     const base = STOCK_DATA[s] ? STOCK_DATA[s].price : 500;
     LIVE_HISTORY[s] = [];
-    let p = base - (Math.random() * 2 - 1);
+    let p = base - (Math.random() * 0.6 - 0.3);
     for (let i = 24; i >= 0; i--) {
-      // If closed, generate static session close intervals (e.g. 15:30:00 to 16:00:00)
-      const t = isOpen
-        ? new Date(now - i * 2000).toLocaleTimeString('en-US', { hour12: false })
-        : new Date(new Date().setHours(15, 36 + i, 0)).toLocaleTimeString('en-US', { hour12: false });
-      p += (Math.random() - 0.49) * (base * 0.0008);
+      const d = new Date(now - i * 60000);
+      const t = d.toLocaleTimeString('en-US', { hour12: false });
+      p += (Math.random() - 0.485) * (base * 0.0004);
       LIVE_HISTORY[s].push({ time: t, price: parseFloat(p.toFixed(2)) });
     }
   });

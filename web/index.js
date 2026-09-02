@@ -1062,16 +1062,19 @@ function initPayoffChart() {
   grad.addColorStop(0.6, 'rgba(0,212,170,0.03)');
   grad.addColorStop(1, 'rgba(246,70,93,0.08)');
 
-  const { strat } = getActiveProfile();
+  const s = currentSymbol;
+  const data = LIVE_HISTORY[s] || [];
+  const prices = data.map(d => d.price);
+  const labels = data.map(d => d.time);
 
   payoffChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: strat.strikes.map(s => typeof s === 'number' ? `$${s}` : s),
+      labels: labels,
       datasets: [
         {
-          label: 'Payoff ($)',
-          data: strat.payoff,
+          label: `${s} Price ($)`,
+          data: prices,
           borderColor: '#00D4AA',
           backgroundColor: grad,
           borderWidth: 2.5,
@@ -1080,19 +1083,10 @@ function initPayoffChart() {
           pointBackgroundColor: '#00D4AA',
           pointBorderColor: '#0B0E11',
           pointBorderWidth: 2,
-          pointRadius: 4,
+          pointRadius: prices.map((_, i) => i === prices.length - 1 ? 5 : 0),
           pointHoverRadius: 6.5,
           pointHoverBackgroundColor: '#FFFFFF',
           pointHoverBorderColor: '#00D4AA'
-        },
-        {
-          label: 'Breakeven',
-          data: strat.strikes.map(() => 0),
-          borderColor: 'rgba(255,255,255,0.12)',
-          borderWidth: 1.2,
-          borderDash: [4, 4],
-          pointRadius: 0,
-          fill: false
         }
       ]
     },
@@ -1106,10 +1100,17 @@ function initPayoffChart() {
           ticks: {
             color: '#5E6673',
             font: { family: 'JetBrains Mono', size: 10, weight: '500' },
-            maxTicksLimit: 6,
+            maxTicksLimit: 5,
             autoSkip: true,
             maxRotation: 0,
-            minRotation: 0
+            minRotation: 0,
+            callback: function(val, index) {
+              const total = this.chart.data.labels.length;
+              if (index === 0 || index === Math.floor(total * 0.25) || index === Math.floor(total * 0.5) || index === Math.floor(total * 0.75) || index === total - 1) {
+                return this.getLabelForValue(val);
+              }
+              return '';
+            }
           }
         },
         y: {
@@ -1117,7 +1118,7 @@ function initPayoffChart() {
           ticks: {
             color: '#5E6673',
             font: { family: 'JetBrains Mono', size: 11, weight: '500' },
-            callback: v => (v > 0 ? '+$' : (v < 0 ? '-$' : '$')) + Math.abs(v)
+            callback: v => '$' + v.toFixed(2)
           }
         }
       },

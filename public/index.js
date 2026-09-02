@@ -935,9 +935,9 @@ function initLiveHistory() {
   symbols.forEach(s => {
     const base = STOCK_DATA[s] ? STOCK_DATA[s].price : 500;
     LIVE_HISTORY[s] = [];
-    let p = base - (Math.random() * 0.6 - 0.3);
-    for (let i = 24; i >= 0; i--) {
-      const d = new Date(now - i * 60000);
+    let p = base - 0.4;
+    for (let i = 0; i < 25; i++) {
+      const d = new Date(now - (24 - i) * 60000);
       const t = d.toLocaleTimeString('en-US', { hour12: false });
       p += (Math.random() - 0.485) * (base * 0.0004);
       LIVE_HISTORY[s].push({ time: t, price: parseFloat(p.toFixed(2)) });

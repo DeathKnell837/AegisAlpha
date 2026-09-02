@@ -511,8 +511,8 @@ async function fetchAccount() {
     if (earnTime) earnTime.textContent = new Date().toLocaleTimeString();
 
     // Cache latest account and update risk telemetry
-    window._latestAccount = acc;
-    updateRiskGauges(acc, window._latestPositions || []);
+    window._latestAccount = d;
+    updateRiskGauges(d, window._latestPositions || []);
   } catch (e) {
     console.error('Account fetch:', e);
   }

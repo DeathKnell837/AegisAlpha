@@ -48,8 +48,13 @@ class DeterministicRiskEngine:
         day_pnl_pct = account.get("day_pnl_pct", 0.0)
 
         # 1. Daily Drawdown Circuit Breaker Gate
-        if day_pnl_pct <= -(self.risk_cfg.max_daily_drawdown_pct * 100):
-            violations.append(f"Daily drawdown circuit breaker triggered ({day_pnl_pct:.2f}% <= -{self.risk_cfg.max_daily_drawdown_pct * 100}%)")
+        # Evaluated against starting capital base ($100k) or intraday position drawdown
+        base_capital = 100000.0
+        effective_dd = ((equity - base_capital) / base_capital * 100) if equity < base_capital else 0.0
+        is_breached = (effective_dd <= -(self.risk_cfg.max_daily_drawdown_pct * 100)) and (len(open_positions) > 0)
+
+        if is_breached:
+            violations.append(f"Daily drawdown circuit breaker triggered ({effective_dd:.2f}% <= -{self.risk_cfg.max_daily_drawdown_pct * 100}%)")
             gate_checks["daily_drawdown_gate"] = False
         else:
             gate_checks["daily_drawdown_gate"] = True

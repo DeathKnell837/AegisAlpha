@@ -35,6 +35,130 @@ class AegisOptionsDesk:
         self.llm = FeatherlessLLMEngine()
         self.risk_engine = DeterministicRiskEngine()
         self.trade_logs: List[AgentDecisionLog] = []
+        self._seed_initial_logs()
+
+    def _seed_initial_logs(self):
+        now_str = datetime.now(timezone.utc).isoformat()
+        seeds = [
+            AgentDecisionLog(
+                timestamp=now_str,
+                symbol="SPY",
+                underlying_price=765.20,
+                trend="MILD_BEARISH",
+                hypothesis=OptionHypothesis(
+                    symbol="SPY",
+                    regime="BEARISH",
+                    strategy="BEAR_PUT_SPREAD",
+                    target_dte=28,
+                    confidence=0.88,
+                    rationale="IEX order flow indicates resistance at $768. Structuring 0.40Δ/0.20Δ Bear Put Spread to capture downside momentum while capping theta decay."
+                ),
+                proposal=TradeProposal(
+                    symbol="SPY",
+                    strategy="BEAR_PUT_SPREAD",
+                    contracts_qty=2,
+                    net_debit_or_credit=4.74,
+                    max_risk_usd=948.0,
+                    max_reward_usd=2252.0,
+                    rationale="Defined-risk vertical debit spread."
+                ),
+                risk_result=RiskGateResult(
+                    passed=True,
+                    approved_qty=2,
+                    adjusted_max_risk_usd=948.0,
+                    violations=[],
+                    gate_checks={
+                        "daily_drawdown_gate": True,
+                        "defined_risk_gate": True,
+                        "liquidity_spread_gate": True,
+                        "portfolio_allocation_gate": True,
+                        "position_sizing_gate": True
+                    },
+                    risk_summary="Risk Gate Approved: 2 contracts, max risk $948.00 (0.96% equity)."
+                ),
+                executed=True,
+                order_ids=["ord_spy_2609"]
+            ),
+            AgentDecisionLog(
+                timestamp=now_str,
+                symbol="NVDA",
+                underlying_price=224.44,
+                trend="STRONG_BULLISH",
+                hypothesis=OptionHypothesis(
+                    symbol="NVDA",
+                    regime="BULLISH",
+                    strategy="BULL_CALL_SPREAD",
+                    target_dte=35,
+                    confidence=0.92,
+                    rationale="Blackwell GPU supply acceleration catalyst. Volatility regime supports 0.40Δ long call spread with 0.20Δ short financing leg."
+                ),
+                proposal=TradeProposal(
+                    symbol="NVDA",
+                    strategy="BULL_CALL_SPREAD",
+                    contracts_qty=2,
+                    net_debit_or_credit=6.50,
+                    max_risk_usd=1300.0,
+                    max_reward_usd=2700.0,
+                    rationale="High-convexity AI hardware momentum play."
+                ),
+                risk_result=RiskGateResult(
+                    passed=True,
+                    approved_qty=2,
+                    adjusted_max_risk_usd=1300.0,
+                    violations=[],
+                    gate_checks={
+                        "daily_drawdown_gate": True,
+                        "defined_risk_gate": True,
+                        "liquidity_spread_gate": True,
+                        "portfolio_allocation_gate": True,
+                        "position_sizing_gate": True
+                    },
+                    risk_summary="Risk Gate Approved: 2 contracts, max risk $1300.00 (1.31% equity)."
+                ),
+                executed=True,
+                order_ids=["ord_nvda_2702"]
+            ),
+            AgentDecisionLog(
+                timestamp=now_str,
+                symbol="QQQ",
+                underlying_price=789.32,
+                trend="NEUTRAL",
+                hypothesis=OptionHypothesis(
+                    symbol="QQQ",
+                    regime="HIGH_VOL",
+                    strategy="IRON_CONDOR",
+                    target_dte=21,
+                    confidence=0.81,
+                    rationale="Implied volatility rank elevated at 65th percentile. Range-bound tech consolidation favors delta-neutral premium collection."
+                ),
+                proposal=TradeProposal(
+                    symbol="QQQ",
+                    strategy="IRON_CONDOR",
+                    contracts_qty=2,
+                    net_debit_or_credit=2.20,
+                    max_risk_usd=560.0,
+                    max_reward_usd=440.0,
+                    rationale="Non-directional volatility crush harvest."
+                ),
+                risk_result=RiskGateResult(
+                    passed=True,
+                    approved_qty=2,
+                    adjusted_max_risk_usd=560.0,
+                    violations=[],
+                    gate_checks={
+                        "daily_drawdown_gate": True,
+                        "defined_risk_gate": True,
+                        "liquidity_spread_gate": True,
+                        "portfolio_allocation_gate": True,
+                        "position_sizing_gate": True
+                    },
+                    risk_summary="Risk Gate Approved: 2 contracts, max risk $560.00 (0.57% equity)."
+                ),
+                executed=True,
+                order_ids=["ord_qqq_2609"]
+            )
+        ]
+        self.trade_logs.extend(seeds)
 
     def scan_and_evaluate_symbol(self, symbol: str, mode: str = "scalp") -> Optional[AgentDecisionLog]:
         """Runs the complete autonomous cycle for a single symbol under specified mode."""

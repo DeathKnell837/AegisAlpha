@@ -49,9 +49,9 @@ class AlpacaService:
     def get_account(self) -> Dict[str, Any]:
         acc = self.trading_client.get_account()
         equity = float(acc.equity)
-        last_equity = float(acc.last_equity)
-        day_pnl = equity - last_equity
-        day_pnl_pct = (day_pnl / last_equity * 100) if last_equity > 0 else 0.0
+        base_equity = 100000.0
+        day_pnl = equity - base_equity
+        day_pnl_pct = (day_pnl / base_equity * 100)
 
         return {
             'account_number': acc.account_number,

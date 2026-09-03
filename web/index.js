@@ -1282,6 +1282,11 @@ function initPayoffChart() {
   initChartControls();
   fetchMarketBars(currentSymbol);
   fetchDynamicPayoff(currentSymbol, currentStrategyKey);
+  if (!isNYSEOpen()) {
+    setChartMode('payoff');
+  } else {
+    setChartMode('live');
+  }
   updatePayoffDisplay();
 }
 
